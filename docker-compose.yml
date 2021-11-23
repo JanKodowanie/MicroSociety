@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./utils/postgres:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_MULTIPLE_DATABASES="user_db","group_db"
+      - POSTGRES_USER=msociety
+      - POSTGRES_PASSWORD=msociety
+
+  broker:
+    image: rabbitmq:3.8-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=msociety
+      - RABBITMQ_DEFAULT_PASS=msociety
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    depends_on:
+      - db
+    
+  account_service:
+    build: ./UserService
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - broker
+
+  group_service:
+    build: ./GroupService
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+      - broker

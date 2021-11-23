@@ -1,0 +1,12 @@
+# ide related
+.vscode/
+.DS_Store
+
+# python related
+__pycache__/
+**/*.env
+test.db
+
+# other
+sample_app/
+.docker/
