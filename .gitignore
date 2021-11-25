@@ -10,3 +10,4 @@ test.db
 # other
 sample_app/
 .docker/
+db.sqlite*

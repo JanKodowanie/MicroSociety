@@ -9,7 +9,7 @@ services:
     volumes:
       - ./utils/postgres:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_MULTIPLE_DATABASES="user_db","group_db"
+      - POSTGRES_MULTIPLE_DATABASES="account_db","blog_db"
       - POSTGRES_USER=msociety
       - POSTGRES_PASSWORD=msociety
 
@@ -25,7 +25,7 @@ services:
       - db
     
   account_service:
-    build: ./UserService
+    build: ./AccountService
     ports:
       - "8000:8000"
     depends_on:
@@ -33,7 +33,7 @@ services:
       - broker
 
   group_service:
-    build: ./GroupService
+    build: ./BlogService
     ports:
       - "8001:8000"
     depends_on:

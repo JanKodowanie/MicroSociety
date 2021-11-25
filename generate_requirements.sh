@@ -1,4 +1,4 @@
 #!/bin/bash
 
-pip freeze > UserService/requirements.txt
-pip freeze > GroupService/requirements.txt
+pip freeze > AccountService/requirements.txt
+pip freeze > BlogService/requirements.txt
