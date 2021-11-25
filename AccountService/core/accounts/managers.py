@@ -86,11 +86,11 @@ class AccountManager:
     
     def _compose_credentials_taken_error(self, fields: List[str]):
         error_msg = []
-        if 'username' in fields:
-            error_msg.append('Username already taken')
         if 'email' in fields:
             error_msg.append('Email already taken')
-            
+        if 'username' in fields:
+            error_msg.append('Username already taken')
+        
         return self._compose_error_messages(fields, error_msg)
             
     
