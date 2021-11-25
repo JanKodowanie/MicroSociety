@@ -13,6 +13,7 @@ class Account(models.Model):
     rank = fields.IntEnumField(enum_type=AccountRank, default=AccountRank.RANK_1)
     gender = fields.IntEnumField(enum_type=AccountGender)
     status = fields.IntEnumField(enum_type=AccountStatus, default=AccountStatus.ACTIVE)
+    role = fields.IntEnumField(enum_type=AccountRole, default=AccountRole.STANDARD)
     
     
     class Meta:

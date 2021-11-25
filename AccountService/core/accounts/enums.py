@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 
 class AccountStatus(IntEnum):
@@ -13,7 +13,7 @@ class AccountRank(IntEnum):
     RANK_3 = 3
     
     
-class AccountType(IntEnum):
+class AccountRole(IntEnum):
     STANDARD = 1
     MODERATOR = 2
     ADMINISTRATOR = 3

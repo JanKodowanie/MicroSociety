@@ -20,11 +20,13 @@ async def register_user(request: schemas.AccountCreateSchema):
     return obj
 
 
-@app.get('/', response_model=schemas.AccountOutSchema)
-async def register_user(request: schemas.AccountCreateSchema):
-    print(request.dict())
-    obj = await Account.create(**request.dict())
-    return obj
+@app.get(
+    '/list', 
+    response_model=List[schemas.AccountListSchema]
+)
+async def get_users():
+    users = await Account.all()
+    return users
 
 
 if __name__ == "__main__":
