@@ -22,6 +22,11 @@ class BlogPost(models.Model):
         = fields.ManyToManyField(model_name='models.Tag', related_name='posts',
                     null=True)
         
+        
+    class Meta:
+        ordering = ["-date_created"]
+        
+        
     async def create_tags_from_content(self) -> None:
         tag_names = await self._extract_hashtags(self.content)
         for name in tag_names:
