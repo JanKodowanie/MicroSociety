@@ -1,11 +1,13 @@
 from tortoise import fields, models
+from typing import List
+import re
 
 
 class Tag(models.Model):
     name = fields.CharField(max_length=30, pk=True)
     creator_id = fields.UUIDField(null=True)
-    posts = fields.ManyToManyRelation["BlogPost"]
     date_created = fields.DatetimeField(auto_now_add=True)
+    posts: fields.ManyToManyRelation["BlogPost"]
     
     
 class BlogPost(models.Model):
@@ -20,11 +22,10 @@ class BlogPost(models.Model):
         = fields.ManyToManyField(model_name='models.Tag', related_name='posts',
                     null=True)
         
-    
-    async def create_tags_from_content(self):
-        tag_names = ['test1', 'test2', 'test3']
+    async def create_tags_from_content(self) -> None:
+        tag_names = await self._extract_hashtags(self.content)
         for name in tag_names:
-            tag = await Tag.get_or_create(name=name)
+            tag = await Tag.get_or_create(name=name.lower())
             tag = tag[0]
             if not tag.creator_id:
                 tag.creator_id = self.creator_id
@@ -32,3 +33,9 @@ class BlogPost(models.Model):
                 
             await self.tags.add(tag)
             await self.save()
+            
+    async def _extract_hashtags(self, content: str) -> List[str]:
+        regex = "#(\w+)"
+        hashtag_list = re.findall(regex, content)
+        
+        return hashtag_list
