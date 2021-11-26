@@ -17,7 +17,7 @@ MODEL_PATHS = (
 def create_db_connection(app) -> None:
     register_tortoise(
         app,
-        db_url='sqlite://AccountService/db.sqlite',
+        db_url='sqlite://BlogService/db.sqlite',
         modules={'models': MODEL_PATHS},
         generate_schemas=True,
         add_exception_handlers=True
