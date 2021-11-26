@@ -101,7 +101,6 @@ class AccountManager:
         
         return self._compose_error_messages(fields, error_msg)
             
-    
     def _compose_error_messages(self, field_names: List[str], messages: List[str]) -> Dict[str, str]:
         errors = {}
         

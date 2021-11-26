@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from pydantic.types import UUID4
+from uuid import UUID
 from core.posts.schemas import *
 from core.posts.managers import *
 from core.posts.models import *
@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.post(
-    '/blogs/new',
+    '/new',
     response_model=BlogPostOutSchema,
     status_code=status.HTTP_201_CREATED
 )
@@ -25,7 +25,7 @@ async def create_blog_post(request: BlogPostCreateSchema, manager: BlogPostManag
 
 
 @router.delete(
-    '/blogs/{id}',
+    '/{id}',
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_blog_post(id: int, manager: BlogPostManager = Depends()):
@@ -39,7 +39,7 @@ async def delete_blog_post(id: int, manager: BlogPostManager = Depends()):
 
 
 @router.get(
-    '/blogs/list',
+    '/list',
     response_model=List[BlogPostOutSchema]
 )
 async def get_post_list(manager: BlogPostManager = Depends()):
@@ -47,14 +47,26 @@ async def get_post_list(manager: BlogPostManager = Depends()):
 
 
 @router.get(
-    '/blogs/tags/list',
+    '/list/{user_id}',
+    response_model=List[BlogPostOutSchema]
+)
+async def get_posts_by_user_id(user_id: UUID, manager: BlogPostManager = Depends()):
+    filters = {
+        "creator_id": user_id
+    }
+    return await manager.get_posts(filters)
+
+
+@router.get(
+    '/tags/list',
     response_model=List[TagSchema]
 )
 async def get_tag_list(manager: TagManager = Depends()):
     return await manager.get_tag_list()
 
+
 @router.get(
-    '/blogs/tags/{name}',
+    '/tags/{name}',
     response_model=List[BlogPostOutSchema]
 )
 async def get_posts_in_tag(name: str, manager: TagManager = Depends()):
