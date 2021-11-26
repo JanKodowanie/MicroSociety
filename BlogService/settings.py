@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from tortoise.contrib.fastapi import register_tortoise
+from tortoise import Tortoise
 
 
 load_dotenv()
@@ -10,9 +11,8 @@ load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
-    "core.accounts.models",
+    'core.posts.models',
 )
-
 
 def create_db_connection(app) -> None:
     register_tortoise(
@@ -22,6 +22,8 @@ def create_db_connection(app) -> None:
         generate_schemas=True,
         add_exception_handlers=True
     )
+
+Tortoise.init_models(MODEL_PATHS, 'models')
 
 
 # auth settings
