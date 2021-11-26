@@ -2,11 +2,12 @@ import uvicorn
 from fastapi import FastAPI
 import settings
 from core.accounts.router import router as accounts_router
+from core.auth.router import router as auth_router
 
 
 app = FastAPI()
 app.include_router(accounts_router)
-
+app.include_router(auth_router)
 
 try:
     settings.create_db_connection(app)

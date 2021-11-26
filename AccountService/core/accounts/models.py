@@ -10,10 +10,10 @@ class Account(models.Model):
     bio = fields.TextField(max_length=300, null=True)
     date_joined = fields.DatetimeField(auto_now_add=True)
     points = fields.IntField(default=0)
-    rank = fields.IntEnumField(enum_type=AccountRank, default=AccountRank.RANK_1)
-    gender = fields.IntEnumField(enum_type=AccountGender)
-    status = fields.IntEnumField(enum_type=AccountStatus, default=AccountStatus.ACTIVE)
-    role = fields.IntEnumField(enum_type=AccountRole, default=AccountRole.STANDARD)
+    rank = fields.CharEnumField(enum_type=AccountRank, default=AccountRank.RANK_1)
+    gender = fields.CharEnumField(enum_type=AccountGender)
+    status = fields.CharEnumField(enum_type=AccountStatus, default=AccountStatus.ACTIVE)
+    role = fields.CharEnumField(enum_type=AccountRole, default=AccountRole.STANDARD)
     
     
     class Meta:

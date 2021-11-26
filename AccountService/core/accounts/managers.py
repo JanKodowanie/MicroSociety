@@ -39,6 +39,14 @@ class AccountManager:
         
         return account
     
+    async def get_account_by_email(self, email: str) -> Account:
+        try:
+            account = await Account.get(email=email)
+        except DoesNotExist:
+            raise AccountNotFound()
+        
+        return account
+    
     async def delete_account(self, account: Account) -> None:
         await account.delete()
 

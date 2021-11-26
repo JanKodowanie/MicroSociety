@@ -4,6 +4,7 @@ from typing import Optional
 from .enums import *
 from .models import Account
 from tortoise.contrib.pydantic import pydantic_model_creator
+from datetime import datetime
 
 
 class AccountCreateSchema(pydantic.BaseModel):
@@ -36,9 +37,24 @@ class AccountEditSchema(pydantic.BaseModel):
 AccountOutSchema = pydantic_model_creator(Account, name="AccountOutSchema")
 
 
-class AccountListSchema(pydantic.BaseModel):
+class AccountBasicSchema(pydantic.BaseModel):
     id: pydantic.UUID4
     username: str
+    rank: AccountRank
+    gender: AccountGender
+    status: AccountStatus
+    role: AccountRole
+    
+    class Config:
+        orm_mode = True
+        
+        
+class AccountOutPublicSchema(pydantic.BaseModel):
+    id: pydantic.UUID4
+    username: str
+    bio: Optional[str]
+    date_joined: datetime
+    points: int
     rank: AccountRank
     gender: AccountGender
     status: AccountStatus

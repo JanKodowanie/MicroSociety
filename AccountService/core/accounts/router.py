@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from core.accounts.schemas import *
 from core.accounts.exceptions import *
 from core.accounts.managers import AccountManager
+from core.auth.handlers import AuthHandler
 from typing import List
 from pydantic.types import UUID4
 
@@ -13,7 +14,7 @@ router = APIRouter(
 
 
 @router.post(
-    '/register', 
+    '/new', 
     response_model=AccountOutSchema,
     status_code=status.HTTP_201_CREATED
 )
@@ -26,8 +27,8 @@ async def register_account(request: AccountCreateSchema, manager: AccountManager
 
 
 @router.get(
-    '/get_list', 
-    response_model=List[AccountListSchema],
+    '/list', 
+    response_model=List[AccountBasicSchema],
     status_code=status.HTTP_200_OK
 )
 async def get_user_list(manager: AccountManager = Depends()):
@@ -36,11 +37,11 @@ async def get_user_list(manager: AccountManager = Depends()):
 
 
 @router.get(
-    '/{id}/get_details', 
-    response_model=AccountOutSchema,
+    '/{id}/profile', 
+    response_model=AccountOutPublicSchema,
     status_code=status.HTTP_200_OK
 )
-async def get_account_details(id: UUID4, manager: AccountManager = Depends()):
+async def get_user_profile(id: UUID4, manager: AccountManager = Depends()):
     try:
         account = await manager.get_account(id)
     except AccountNotFound as e:
@@ -48,17 +49,22 @@ async def get_account_details(id: UUID4, manager: AccountManager = Depends()):
     return account
 
 
-@router.put(
-    '/{id}/edit', 
+@router.get(
+    '/details', 
     response_model=AccountOutSchema,
     status_code=status.HTTP_200_OK
 )
-async def edit_account_data(id: UUID4, request: AccountEditSchema, manager: AccountManager = Depends()):
-    try:
-        account = await manager.get_account(id)
-    except AccountNotFound as e:
-        raise HTTPException(404, detail=e.details)
-    # sprawdzanie uprawnień
+async def get_account_details(account: Account = Depends(AuthHandler.get_user_from_token)):
+    return account
+
+
+@router.put(
+    '/details', 
+    response_model=AccountOutSchema,
+    status_code=status.HTTP_200_OK
+)
+async def edit_account_data(request: AccountEditSchema, manager: AccountManager = Depends(),
+                        account: Account = Depends(AuthHandler.get_user_from_token)):
     try:
         account = await manager.edit_account(account, request)
     except CredentialsAlreadyTaken as e:
@@ -68,15 +74,10 @@ async def edit_account_data(id: UUID4, request: AccountEditSchema, manager: Acco
 
 
 @router.delete(
-    '/{id}/delete', 
+    '/details', 
     status_code=status.HTTP_204_NO_CONTENT
 )
-async def delete_account(id: UUID4, manager: AccountManager = Depends()):
-    try:
-        account = await manager.get_account(id)
-    except AccountNotFound as e:
-        return 
-    
-    # sprawdzanie uprawnień
+async def delete_account(manager: AccountManager = Depends(),
+                        account: Account = Depends(AuthHandler.get_user_from_token)):
     await manager.delete_account(account)
     return 

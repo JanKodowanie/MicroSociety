@@ -1,7 +1,7 @@
 
 class AccountNotFound(Exception):
     def __init__(self):
-        self.details = {'error': 'Account not found'}
+        self.details = 'Account not found'
         super().__init__('Account not found')
 
 

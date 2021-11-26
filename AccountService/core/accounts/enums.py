@@ -1,24 +1,24 @@
-from enum import IntEnum, Enum
+from enum import Enum
 
 
-class AccountStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 2
-    BANNED = 3
+class AccountStatus(str, Enum):
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    BANNED = 'banned'
     
     
-class AccountRank(IntEnum):
-    RANK_1 = 1
-    RANK_2 = 2
-    RANK_3 = 3
+class AccountRank(str,Enum):
+    RANK_1 = 'rank_1'
+    RANK_2 = 'rank_2'
+    RANK_3 = 'rank_3'
     
     
-class AccountRole(IntEnum):
-    STANDARD = 1
-    MODERATOR = 2
-    ADMINISTRATOR = 3
+class AccountRole(str,Enum):
+    STANDARD = 'standard'
+    MODERATOR = 'moderator'
+    ADMINISTRATOR = 'administrator'
     
     
-class AccountGender(IntEnum):
-    MALE = 1
-    FEMALE = 2
+class AccountGender(str,Enum):
+    MALE = 'male'
+    FEMALE = 'female'
