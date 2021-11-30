@@ -32,10 +32,18 @@ services:
       - db
       - broker
 
-  group_service:
+  blog_service:
     build: ./BlogService
     ports:
       - "8001:8000"
+    depends_on:
+      - db
+      - broker
+
+  email_service:
+    build: ./EmailService
+    ports:
+      - "8002:8000"
     depends_on:
       - db
       - broker

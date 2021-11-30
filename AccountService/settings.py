@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from tortoise.contrib.fastapi import register_tortoise
+from tortoise import Tortoise
 
 
 load_dotenv()
@@ -13,7 +14,6 @@ MODEL_PATHS = (
     "core.accounts.models",
 )
 
-
 def create_db_connection(app) -> None:
     register_tortoise(
         app,
@@ -23,6 +23,10 @@ def create_db_connection(app) -> None:
         add_exception_handlers=True
     )
 
+Tortoise.init_models(MODEL_PATHS, 'models')
+
+# broker settings
+BROKER_URL = os.getenv('BROKER_URL')
 
 # auth settings
 SECRET_KEY = os.getenv('SECRET_KEY')

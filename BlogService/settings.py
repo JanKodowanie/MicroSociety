@@ -25,6 +25,8 @@ def create_db_connection(app) -> None:
 
 Tortoise.init_models(MODEL_PATHS, 'models')
 
+# broker settings
+BROKER_URL = os.getenv('BROKER_URL')
 
 # auth settings
 SECRET_KEY = os.getenv('SECRET_KEY')
