@@ -7,7 +7,7 @@ class ESApp(FastAPI):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.broker_client = BrokerClient(self.log_incoming_message)
+        self.broker_client = BrokerClient()
 
     @classmethod
     def log_incoming_message(cls, message: dict):

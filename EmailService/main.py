@@ -27,7 +27,8 @@ async def send_message(request: MessageSchema):
 @app.on_event('startup')
 async def startup():
     loop = asyncio.get_running_loop()
-    task = loop.create_task(app.broker_client.consume(loop))
+    await app.broker_client.initialize(loop, app.log_incoming_message)
+    task = loop.create_task(app.broker_client.consume())
     await task
 
 
