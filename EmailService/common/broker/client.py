@@ -14,13 +14,23 @@ class BrokerClient:
         try:
             self.connection = await pika.connect_robust(settings.BROKER_URL,
                                         loop=self.loop)
-            self.sub_channel = await self.connection.channel()
-            self.pub_channel = await self.connection.channel()
-            self.queue = await self.sub_channel.declare_queue('account_sub', durable=True)
-            self.exchange = await self.sub_channel.declare_exchange('account_pub', 
-                                    pika.ExchangeType.TOPIC, durable=True)
             
-            await self.queue.bind('account_pub', 'account.test')
+            if settings.EXCHANGE:
+                self.pub_channel = await self.connection.channel()
+                self.exchange = await self.pub_channel.declare_exchange(settings.EXCHANGE, 
+                                        pika.ExchangeType.TOPIC, durable=True)
+                
+            if settings.QUEUE:
+                self.sub_channel = await self.connection.channel()
+                self.queue = await self.sub_channel.declare_queue(settings.QUEUE, durable=True)
+                
+                if settings.BINDINGS:
+                    for exchange, binding_keys in settings.BINDINGS.items():
+                        await self.sub_channel.declare_exchange(exchange, 
+                                        pika.ExchangeType.TOPIC, durable=True)
+                        for key in binding_keys:
+                            await self.queue.bind(exchange, key)
+                            
         except Exception as e:
             logger.error("Error connecting to broker")
             logger.error(e)
@@ -33,14 +43,13 @@ class BrokerClient:
     
     async def send_message(self, message: dict, routing_key: str):
         """Method to publish message to RabbitMQ"""
-        
-        await self.pub_channel.basic_publish(
-            exchange='account',
-            body=pika.Message(body=json.dumps(message).encode(), correlation_id=str(uuid.uuid4())),
+        message['event'] = routing_key
+        await self.exchange.publish(
+            message=pika.Message(body=json.dumps(message).encode(), message_id=str(uuid.uuid4())),
             routing_key=routing_key
         )
     
-    async def _process_incoming_message(self, message):
+    async def _process_incoming_message(self, message: pika.Message):
         """Processing incoming message from RabbitMQ"""
         message.ack()
         body = message.body
