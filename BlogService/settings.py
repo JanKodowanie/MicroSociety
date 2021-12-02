@@ -1,10 +1,13 @@
 import os
+import logging
 from dotenv import load_dotenv
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise import Tortoise
 
 
 load_dotenv()
+logger = logging.getLogger('uvicorn')
+
 
 # db settings
 
@@ -25,8 +28,16 @@ def create_db_connection(app) -> None:
 
 Tortoise.init_models(MODEL_PATHS, 'models')
 
+
 # broker settings
 BROKER_URL = os.getenv('BROKER_URL')
+QUEUE = 'blog_queue'
+EXCHANGE = 'blog_exchange'
+
+BINDINGS = {
+    'account_exchange': ('account.*',)
+}
+
 
 # auth settings
 SECRET_KEY = os.getenv('SECRET_KEY')

@@ -30,6 +30,9 @@ class BlogPostManager:
             posts = await BlogPost.filter(**filters).prefetch_related('tags')
         return posts
     
+    async def delete_posts(self, filters: dict = None) -> None:
+        await BlogPost.filter(**filters).delete()
+    
 
 class TagManager:
     

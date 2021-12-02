@@ -5,6 +5,7 @@ from core.accounts.managers import AccountManager
 from core.auth.handlers import AuthHandler
 from typing import List
 from pydantic.types import UUID4
+from core.events.event_publisher import EventPublisher
 
 
 router = APIRouter(
@@ -78,6 +79,9 @@ async def edit_account_data(request: AccountEditSchema, manager: AccountManager 
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_account(manager: AccountManager = Depends(),
-                        account: Account = Depends(AuthHandler.get_user_from_token)):
+                        account: Account = Depends(AuthHandler.get_user_from_token),
+                        broker: EventPublisher = Depends()):
+    user_id = account.id
     await manager.delete_account(account)
+    await broker.publish_account_deleted(user_id)
     return 

@@ -49,6 +49,7 @@ class AccountManager:
     
     async def delete_account(self, account: Account) -> None:
         await account.delete()
+        
 
     async def get_user_list(self, filters: Optional[dict] = None) -> List[Account]:
         if not filters:

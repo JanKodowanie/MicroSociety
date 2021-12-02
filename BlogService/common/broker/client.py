@@ -57,3 +57,4 @@ class BrokerClient:
         if body:
             logger.info('Received event: ' + str(body.decode()))
             await self.callable(json.loads(body))
+        
