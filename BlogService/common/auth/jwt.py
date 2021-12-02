@@ -1,36 +1,39 @@
-import settings
-from fastapi import HTTPException, Header
+from fastapi import Request, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt
-from .schemas import *
-from datetime import datetime, timezone
+from .schemas import UserDataSchema
+import settings
 
 
-class JWTHandler:
+class JWTBearer(HTTPBearer):
+    def __init__(self, auto_error: bool = True):
+        super().__init__(auto_error=auto_error)
 
-    @classmethod
-    def authenticate_user(cls, Authorization: str = Header(None)) -> UserDataSchema:
-        try:
-            token_data = Authorization.split()
-            if token_data[0] != 'Bearer':
+    async def __call__(self, request: Request):
+        credentials: HTTPAuthorizationCredentials = await super().__call__(request)
+        
+        if credentials:
+            if not credentials.scheme == "Bearer":
+                raise HTTPException(401, detail="Could not authenticate user",
+                            headers={'WWW-Authenticate': 'Bearer'})
+             
+            token_data = self.decode_token(credentials.credentials)
+                
+            if not token_data:
                 raise HTTPException(401, detail="Could not authenticate user",
                             headers={'WWW-Authenticate': 'Bearer'})
             
-            user_data = cls.decode_token(token_data[1])
-        except Exception:
+            return token_data
+        else:
             raise HTTPException(401, detail="Could not authenticate user",
                             headers={'WWW-Authenticate': 'Bearer'})
-        
-        if user_data.exp < datetime.now(timezone.utc):
-            raise HTTPException(401, detail="Access token has expired")
-        
-        return user_data
-        
-    @classmethod    
-    def decode_token(cls, token: str) -> UserDataSchema:
+
+    def decode_token(self, token: str) -> UserDataSchema:
         try:
+            '''important: it also checks if signature is expired'''
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             token_data = UserDataSchema(**payload)
         except Exception as e:
-            raise e
-        
+            token_data = None
+
         return token_data

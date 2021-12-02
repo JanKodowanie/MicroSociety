@@ -6,8 +6,6 @@ from fastapi import Depends
 from common.ms_app import MSApp
 from core.events.event_handler import EventHandler
 from core.posts.router import router as posts_router
-from common.auth.jwt import JWTHandler
-from common.auth.schemas import UserDataSchema
 
 
 app = MSApp()
@@ -20,11 +18,6 @@ except Exception as e:
     settings.logger.error("Couldn't connect to db")
     settings.logger.error(e)
     sys.exit(-1)
-
-
-@app.get("/test")
-async def jwt_test(user: UserDataSchema = Depends(JWTHandler.authenticate_user)):
-    return user
 
 
 @app.on_event('startup')

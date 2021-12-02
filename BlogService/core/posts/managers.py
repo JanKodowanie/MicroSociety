@@ -6,8 +6,10 @@ from tortoise.exceptions import DoesNotExist
 
 class BlogPostManager:
     
-    async def create_blog_post(self, post_content: BlogPostCreateSchema) -> BlogPost:
-        instance = await BlogPost.create(**post_content.dict())
+    async def create_blog_post(self, user_id: UUID, 
+                               post_content: BlogPostCreateSchema) -> BlogPost:
+        
+        instance = await BlogPost.create(creator_id=user_id, **post_content.dict())
         await instance.create_tags_from_content()
         await instance.fetch_related('tags')
         return instance

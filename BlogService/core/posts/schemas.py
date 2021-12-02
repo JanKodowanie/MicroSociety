@@ -16,8 +16,6 @@ class TagSchema(pydantic.BaseModel):
 
 
 class BlogPostCreateSchema(pydantic.BaseModel):
-    #creator_id: pydantic.UUID4
-    creator_id: UUID
     content: pydantic.constr(strip_whitespace=True, max_length=500)
     video_url: Optional[pydantic.constr(strip_whitespace=True, max_length=200)]
     image_url: Optional[pydantic.constr(strip_whitespace=True, max_length=200)]
