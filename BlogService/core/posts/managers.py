@@ -41,6 +41,9 @@ class TagManager:
     async def get_tag_list(self) -> List[Tag]:
         return await Tag.all()
     
+    async def set_creator_to_null(self, creator_id: UUID) -> None:
+        await Tag.filter(creator_id=creator_id).update(creator_id=None)
+    
     async def get_posts_in_tag(self, tag_name: str) -> List[BlogPost]:
         try:
             tag = await Tag.get(name=tag_name)
