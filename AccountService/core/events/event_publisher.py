@@ -11,4 +11,4 @@ class EventPublisher:
         
     async def publish_account_deleted(self, user_id: UUID):
         event = AccountDeleted(id=str(user_id))
-        await self.broker.send_message(event.dict(), 'account.deleted')
+        await self.broker.send_message(event.json(), event.event)

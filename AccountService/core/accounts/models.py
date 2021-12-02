@@ -1,5 +1,5 @@
 from tortoise import fields, models
-from .enums import *
+from common.enums import *
 
 
 class Account(models.Model):
@@ -29,6 +29,4 @@ class Account(models.Model):
         - city
         - facebook url
         - instagram url
-        
-        rozważyć dodatkowe modele: Admin, Moderator
     '''

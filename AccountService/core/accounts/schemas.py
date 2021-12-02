@@ -1,7 +1,7 @@
 import pydantic
 from pydantic import validator
 from typing import Optional
-from .enums import *
+from common.enums import *
 from .models import Account
 from tortoise.contrib.pydantic import pydantic_model_creator
 from datetime import datetime

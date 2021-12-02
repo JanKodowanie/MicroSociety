@@ -1,10 +1,11 @@
+import settings
 from fastapi import Depends, HTTPException
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt
 from .schemas import *
 from .exceptions import *
+from common.auth.schemas import *
 from core.accounts.exceptions import AccountNotFound
-import settings
 from core.accounts.managers import AccountManager
 from core.accounts.models import Account
 from utils.hash import Hash
@@ -21,17 +22,20 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 class TokenManager:
 
     def create_token(self, account: Account):
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode = self._create_jwt_data(account, expire)
         encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
         return encoded_jwt
 
-    def decode_token(self, token: str) -> TokenDataSchema:
+    def decode_token(self, token: str) -> UserDataSchema:
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-            token_data = TokenDataSchema(**payload)
+            token_data = UserDataSchema(**payload)
         except Exception:
             raise MalformedAccessToken()
+        
+        if token_data.exp < datetime.now(timezone.utc):
+            raise AccessTokenExpired()
         
         return token_data
             

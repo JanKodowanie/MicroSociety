@@ -1,6 +1,7 @@
 from pydantic import BaseModel
+from uuid import UUID
 
 
 class AccountDeleted(BaseModel):
-    # should be uuid4
-    id: str
+    event: str = 'account.deleted'
+    id: UUID

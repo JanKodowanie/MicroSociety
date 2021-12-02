@@ -41,14 +41,13 @@ class BrokerClient:
         logger.info('Established async broker listener.')
         return self.connection
     
-    async def send_message(self, message: dict, routing_key: str):
+    async def send_message(self, message: str, routing_key: str):
         """Method to publish message to RabbitMQ"""
-        message['event'] = routing_key
         await self.exchange.publish(
-            message=pika.Message(body=json.dumps(message).encode(), message_id=str(uuid.uuid4())),
+            message=pika.Message(body=message.encode(), message_id=str(uuid.uuid4())),
             routing_key=routing_key
         )
-        logger.info('Published event: ' + str(message))
+        logger.info('Published event: ' + message)
     
     async def _process_incoming_message(self, message: pika.Message):
         """Processing incoming message from RabbitMQ"""
@@ -57,4 +56,3 @@ class BrokerClient:
         if body:
             logger.info('Received event: ' + str(body.decode()))
             await self.callable(json.loads(body))
-        

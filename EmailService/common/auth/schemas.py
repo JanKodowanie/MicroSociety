@@ -4,7 +4,7 @@ from pydantic.types import UUID4
 from common.enums import AccountStatus, AccountRole
 
     
-class TokenDataSchema(BaseModel):
+class UserDataSchema(BaseModel):
     sub: UUID4
     username: str
     role: AccountRole
