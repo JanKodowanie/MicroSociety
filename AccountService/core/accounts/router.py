@@ -19,11 +19,18 @@ router = APIRouter(
     response_model=AccountOutSchema,
     status_code=status.HTTP_201_CREATED
 )
-async def register_account(request: AccountCreateSchema, manager: AccountManager = Depends()):
+async def register_account(
+    request: AccountCreateSchema, 
+    manager: AccountManager = Depends(),
+    broker: EventPublisher = Depends()
+):
     try:
         account = await manager.register_account(request)
     except CredentialsAlreadyTaken as e:
         raise HTTPException(422, detail=e.details) 
+    
+    await broker.publish_account_created(account.id, account.username, 
+                                         account.email, account.role)
     return account
 
 
@@ -32,7 +39,9 @@ async def register_account(request: AccountCreateSchema, manager: AccountManager
     response_model=List[AccountBasicSchema],
     status_code=status.HTTP_200_OK
 )
-async def get_user_list(manager: AccountManager = Depends()):
+async def get_user_list(
+    manager: AccountManager = Depends()
+):
     users = await manager.get_user_list()
     return users
 
@@ -42,7 +51,10 @@ async def get_user_list(manager: AccountManager = Depends()):
     response_model=AccountOutPublicSchema,
     status_code=status.HTTP_200_OK
 )
-async def get_user_profile(id: UUID4, manager: AccountManager = Depends()):
+async def get_user_profile(
+    id: UUID4, 
+    manager: AccountManager = Depends()
+):
     try:
         account = await manager.get_account(id)
     except AccountNotFound as e:
@@ -55,7 +67,9 @@ async def get_user_profile(id: UUID4, manager: AccountManager = Depends()):
     response_model=AccountOutSchema,
     status_code=status.HTTP_200_OK
 )
-async def get_account_details(account: Account = Depends(AuthHandler.get_user_from_token)):
+async def get_account_details(
+    account: Account = Depends(AuthHandler.get_user_from_token)
+):
     return account
 
 
@@ -64,8 +78,11 @@ async def get_account_details(account: Account = Depends(AuthHandler.get_user_fr
     response_model=AccountOutSchema,
     status_code=status.HTTP_200_OK
 )
-async def edit_account_data(request: AccountEditSchema, manager: AccountManager = Depends(),
-                        account: Account = Depends(AuthHandler.get_user_from_token)):
+async def edit_account_data(
+    request: AccountEditSchema, 
+    manager: AccountManager = Depends(),
+    account: Account = Depends(AuthHandler.get_user_from_token)
+):
     try:
         account = await manager.edit_account(account, request)
     except CredentialsAlreadyTaken as e:
@@ -78,9 +95,11 @@ async def edit_account_data(request: AccountEditSchema, manager: AccountManager 
     '/details', 
     status_code=status.HTTP_204_NO_CONTENT
 )
-async def delete_account(manager: AccountManager = Depends(),
-                        account: Account = Depends(AuthHandler.get_user_from_token),
-                        broker: EventPublisher = Depends()):
+async def delete_account(
+    manager: AccountManager = Depends(),
+    account: Account = Depends(AuthHandler.get_user_from_token),
+    broker: EventPublisher = Depends()
+):
     user_id = account.id
     await manager.delete_account(account)
     await broker.publish_account_deleted(user_id)

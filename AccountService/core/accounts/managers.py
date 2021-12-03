@@ -85,6 +85,10 @@ class AccountManager:
         await account.save()            
         return account
 
+    async def change_users_password(self, account: Account, new_password: str):
+        account.password = self.hash_password(new_password)
+        await account.save()
+
     async def _check_if_email_is_taken(self, email: str) -> bool:
         result = await Account.filter(email=email).exists()
         return result
