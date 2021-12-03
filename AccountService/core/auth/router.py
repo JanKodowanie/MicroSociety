@@ -78,4 +78,4 @@ async def reset_password(
     await account_manager.change_users_password(code.user, request.password)
     await code.delete()
     
-    return({"detail": "Password reseted successfully."})
+    return({"detail": "Password reset successfully."})
