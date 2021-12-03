@@ -5,6 +5,6 @@ from datetime import datetime, timezone, timedelta
 
 class PasswordResetCode(models.Model):
     code = fields.UUIDField(pk=True)
-    user = fields.OneToOneField('models.Account')
+    user = fields.OneToOneField('models.Account', related_name='reset_code')
     exp = fields.DatetimeField(
         default=datetime.now(timezone.utc) + timedelta(hours=24))

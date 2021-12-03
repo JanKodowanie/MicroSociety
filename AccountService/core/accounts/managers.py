@@ -50,7 +50,6 @@ class AccountManager:
     async def delete_account(self, account: Account) -> None:
         await account.delete()
         
-
     async def get_user_list(self, filters: Optional[dict] = None) -> List[Account]:
         if not filters:
             return await Account.all()
@@ -86,7 +85,7 @@ class AccountManager:
         return account
 
     async def change_users_password(self, account: Account, new_password: str):
-        account.password = self.hash_password(new_password)
+        account.password = self.hash.hash_password(new_password)
         await account.save()
 
     async def _check_if_email_is_taken(self, email: str) -> bool:

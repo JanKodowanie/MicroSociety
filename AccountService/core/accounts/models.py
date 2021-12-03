@@ -20,7 +20,7 @@ class Account(models.Model):
         ordering = ["-date_joined"]
         
     class PydanticMeta:
-        exclude = ["password"]
+        exclude = ["password", "reset_code"]
     
     
     '''
