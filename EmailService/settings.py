@@ -7,14 +7,21 @@ load_dotenv()
 logger = logging.getLogger('uvicorn')
 
 
+# sendgrid settings
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+MAIN_EMAIL_TEMPLATE = os.getenv('MAIN_EMAIL_TEMPLATE')
+DOMAIN = "https://microsociety.pl"
+NO_REPLY_EMAIL = "no-reply@microsociety.pl"
+PASS_RESET_ENDPOINT = 'accounts/passwordReset'
+
+
 # broker settings
 BROKER_URL = os.getenv('BROKER_URL')
 QUEUE = 'email_queue'
 EXCHANGE = 'email_exchange'
 
 BINDINGS = {
-    'email_exchange': ('email.a', 'email.b'),
-    'account_exchange': ('account',)
+    'account_exchange': ('account.password_reset', 'account.created')
 }
 
 
