@@ -21,7 +21,10 @@ QUEUE = 'email_queue'
 EXCHANGE = 'email_exchange'
 
 BINDINGS = {
-    'account_exchange': ('account.password_reset', 'account.created')
+    'account_exchange': 
+        ('account.password_reset', 
+         'account.created',
+         'account.deleted')
 }
 
 

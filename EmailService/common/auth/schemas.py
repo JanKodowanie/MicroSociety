@@ -9,4 +9,5 @@ class UserDataSchema(BaseModel):
     username: str
     role: AccountRole
     status: AccountStatus
+    iat: datetime
     exp: datetime

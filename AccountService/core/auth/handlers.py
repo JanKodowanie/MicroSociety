@@ -14,16 +14,11 @@ from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-'''
-    Dodać weryfikację tokena po expiration time i po obecności użytkownika w bazie
-'''
-
 
 class TokenManager:
 
     def create_token(self, account: Account):
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        to_encode = self._create_jwt_data(account, expire)
+        to_encode = self._create_jwt_data(account)
         encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
         return encoded_jwt
 
@@ -39,12 +34,16 @@ class TokenManager:
         
         return token_data
             
-    def _create_jwt_data(self, account: Account, exp: datetime) -> dict:
+    def _create_jwt_data(self, account: Account) -> dict:
+        iat = datetime.now(timezone.utc)
+        exp = iat + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        
         to_encode = {
             'sub': str(account.id),
             'username': account.username,
             'role': account.role.value,
             'status': account.status.value,
+            'iat': iat,
             'exp': exp
         }
         
