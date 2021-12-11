@@ -1,8 +1,9 @@
 from typing import List, Dict, Optional
 from .models import Account
 from .exceptions import AccountNotFound, CredentialsAlreadyTaken
-from utils.hash import Hash
 from .schemas import AccountCreateSchema, AccountEditSchema
+from common.enums import AccountRole
+from utils.hash import Hash
 from uuid import UUID
 from tortoise.exceptions import DoesNotExist
 
@@ -12,7 +13,8 @@ class AccountManager:
     def __init__(self):
         self.hash = Hash()
         
-    async def register_account(self, data: AccountCreateSchema) -> Account:
+    async def register_account(self, data: AccountCreateSchema, 
+                               role: AccountRole = AccountRole.STANDARD) -> Account:
         data.password = self.hash.hash_password(data.password)    
         
         error_fields = []
@@ -28,7 +30,7 @@ class AccountManager:
             raise CredentialsAlreadyTaken('Credentials already taken',
                     details=self._compose_credentials_taken_error(error_fields))
         
-        account = await Account.create(**data.dict())
+        account = await Account.create(**data.dict(), role=role)
         return account
         
     async def get_account(self, uuid: UUID) -> Account:
@@ -76,8 +78,6 @@ class AccountManager:
             account.username = data.username
         if data.email:
             account.email = data.email
-        if data.bio:
-            account.bio = data.bio
         if data.gender:
             account.gender = data.gender
             

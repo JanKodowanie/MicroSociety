@@ -1,64 +1,44 @@
 import pydantic
-from pydantic import validator
+from uuid import UUID
 from typing import Optional
 from common.enums import *
-from .models import Account
+from utils.validators import *
 from tortoise.contrib.pydantic import pydantic_model_creator
 from datetime import datetime
+from .models import Account
 
 
 class AccountCreateSchema(pydantic.BaseModel):
     username: pydantic.constr(strip_whitespace=True, min_length=6, max_length=20)
     email: pydantic.EmailStr
-    # dodać szczegółową walidację
     password: pydantic.constr(strip_whitespace=True, min_length=6, max_length=30)
     gender: AccountGender
     
-    @validator('username')
-    def username_is_alphanumeric(cls, value):
-        if not value.isalnum():
-            raise ValueError('Username must be alphanumeric')
-        return value
+    _username_is_alphanumeric: classmethod = alphanumeric_validator("firstname")
     
 
 class AccountEditSchema(pydantic.BaseModel):
     username: Optional[pydantic.constr(strip_whitespace=True, min_length=6, max_length=20)]
     email: Optional[pydantic.EmailStr]
     gender: Optional[AccountGender]
-    bio: Optional[pydantic.constr(strip_whitespace=True, max_length=300)]
     
-    @validator('username')
-    def username_is_alphanumeric(cls, value):
-        if not value.isalnum():
-            raise ValueError('Username must be alphanumeric')
-        return value
+    _username_is_alphanumeric: classmethod = alphanumeric_validator("firstname")
+    
+    
+AccountGetDetailsSchema = pydantic_model_creator(Account, name="AccountOutSchema")
 
 
-AccountOutSchema = pydantic_model_creator(Account, name="AccountOutSchema")
-
-
-class AccountBasicSchema(pydantic.BaseModel):
-    id: pydantic.UUID4
+class AccountGetListSchema(pydantic.BaseModel):
+    id: UUID
     username: str
-    rank: AccountRank
     gender: AccountGender
-    status: AccountStatus
     role: AccountRole
-    
-    class Config:
-        orm_mode = True
         
         
-class AccountOutPublicSchema(pydantic.BaseModel):
-    id: pydantic.UUID4
+class AccountGetProfileSchema(pydantic.BaseModel):
+    id: UUID
     username: str
-    bio: Optional[str]
     date_joined: datetime
-    points: int
-    rank: AccountRank
     gender: AccountGender
     status: AccountStatus
     role: AccountRole
-    
-    class Config:
-        orm_mode = True

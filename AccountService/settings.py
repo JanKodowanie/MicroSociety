@@ -15,6 +15,8 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
     "core.accounts.models",
+    "core.blog_users.models",
+    "core.employees.models",
     "core.auth.models"
 )
 

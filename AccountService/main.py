@@ -9,7 +9,7 @@ from core.events.event_handler import EventHandler
 
 
 app = MSApp()
-app.include_router(accounts_router)
+# app.include_router(accounts_router)
 app.include_router(auth_router)
 
 
