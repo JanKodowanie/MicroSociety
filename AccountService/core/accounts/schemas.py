@@ -34,6 +34,7 @@ class AccountGetListSchema(pydantic.BaseModel):
     username: str
     gender: AccountGender
     role: AccountRole
+    status: AccountStatus
         
         
 class AccountGetProfileSchema(pydantic.BaseModel):

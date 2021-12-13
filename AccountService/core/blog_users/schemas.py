@@ -47,6 +47,7 @@ class BlogUserGetListSchema(AccountGetListSchema):
             obj.id = obj.account.id
             obj.username = obj.account.username
             obj.gender = obj.account.gender
+            obj.status = obj.account.status
             obj.role = obj.account.role
             
         return super().from_orm(obj)

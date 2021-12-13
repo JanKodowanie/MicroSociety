@@ -7,6 +7,7 @@ from core.accounts.router import router as accounts_router
 from core.blog_users.router import router as blog_users_router
 from core.employees.router import router as employees_router
 from core.events.event_handler import EventHandler
+from feed_db import feed_db
 
 
 app = MSApp()
@@ -25,6 +26,7 @@ except Exception as e:
 
 @app.on_event('startup')
 async def startup():
+    await feed_db()
     loop = asyncio.get_running_loop()
     await app.broker_client.initialize(loop, EventHandler.handle_events)
     task = loop.create_task(app.broker_client.consume())
