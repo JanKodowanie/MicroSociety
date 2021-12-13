@@ -7,3 +7,6 @@ class Employee(models.Model):
     firstname = fields.CharField(max_length=30)
     lastname = fields.CharField(max_length=30)
     phone_number = fields.CharField(max_length=9)
+    
+    class Meta:
+        ordering = ["-account__date_joined"]

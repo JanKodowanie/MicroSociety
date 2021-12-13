@@ -17,4 +17,4 @@ class Account(models.Model):
         ordering = ["-date_joined"]
         
     class PydanticMeta:
-        exclude = ["password", "reset_code"]
+        exclude = ["password", "reset_code", "bloguser", "employee"]

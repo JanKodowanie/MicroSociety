@@ -3,14 +3,17 @@ import settings
 import asyncio
 import sys
 from common.ms_app import MSApp
-from core.accounts.router import router as accounts_router
-from core.auth.router import router as auth_router
+# from core.accounts.router import router as accounts_router
+from core.blog_users.router import router as blog_users_router
+from core.employees.router import router as employees_router
+# from core.auth.router import router as auth_router
 from core.events.event_handler import EventHandler
 
 
 app = MSApp()
 # app.include_router(accounts_router)
-app.include_router(auth_router)
+app.include_router(blog_users_router)
+app.include_router(employees_router)
 
 
 try:

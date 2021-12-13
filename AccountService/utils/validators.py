@@ -11,6 +11,7 @@ def check_is_alphanumeric(value: str) -> str:
 def check_is_alphabetic(value: str) -> str:
     if not value.isalpha():
         raise ValueError('Field can contain only letters')
+    return value
 
 
 def check_is_valid_phone_number(value: str) -> str:

@@ -60,12 +60,12 @@ class AccountManager:
         
     async def edit_account(self, account: Account, data: AccountEditSchema) -> Account:
         error_fields = []
-        if data.email:
+        if data.email and account.email != data.email:
             email_taken = await self._check_if_email_is_taken(data.email)
             if email_taken:
                 error_fields.append('email')
                 
-        if data.username:
+        if data.username and account.username != data.username:
             username_taken = await self._check_if_username_is_taken(data.username)
             if username_taken:
                 error_fields.append('username')

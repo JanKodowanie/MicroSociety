@@ -14,7 +14,7 @@ class AccountCreateSchema(pydantic.BaseModel):
     password: pydantic.constr(strip_whitespace=True, min_length=6, max_length=30)
     gender: AccountGender
     
-    _username_is_alphanumeric: classmethod = alphanumeric_validator("firstname")
+    _username_is_alphanumeric: classmethod = alphanumeric_validator("username")
     
 
 class AccountEditSchema(pydantic.BaseModel):
@@ -22,7 +22,7 @@ class AccountEditSchema(pydantic.BaseModel):
     email: Optional[pydantic.EmailStr]
     gender: Optional[AccountGender]
     
-    _username_is_alphanumeric: classmethod = alphanumeric_validator("firstname")
+    _username_is_alphanumeric: classmethod = alphanumeric_validator("username")
     
     
 AccountGetDetailsSchema = pydantic_model_creator(Account, name="AccountOutSchema")
