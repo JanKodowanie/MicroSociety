@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
-from .models import Account
-from .exceptions import AccountNotFound, CredentialsAlreadyTaken
+from .models import *
+from .exceptions import *
 from .schemas import AccountCreateSchema, AccountEditSchema
 from common.enums import AccountRole
 from utils.hash import Hash
@@ -112,3 +112,18 @@ class AccountManager:
             errors[field_names[i]] = messages[i]
             
         return errors
+    
+    
+class PasswordResetCodeManager:
+    
+    async def create_password_reset_code(self, user: Account) -> PasswordResetCode:
+        await PasswordResetCode.filter(user=user).delete()
+        return await PasswordResetCode.create(user=user)
+    
+    async def get_password_reset_code(self, code: UUID) -> PasswordResetCode:
+        try:
+            code = await PasswordResetCode.get(code=code).prefetch_related('user')
+        except DoesNotExist:
+            raise PasswordResetCodeNotFound()
+        
+        return code

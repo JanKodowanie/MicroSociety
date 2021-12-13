@@ -1,4 +1,5 @@
 from tortoise import fields, models
+from datetime import datetime, timezone, timedelta
 from common.enums import *
 
 
@@ -18,3 +19,10 @@ class Account(models.Model):
         
     class PydanticMeta:
         exclude = ["password", "reset_code", "bloguser", "employee"]
+        
+        
+class PasswordResetCode(models.Model):
+    code = fields.UUIDField(pk=True)
+    user = fields.OneToOneField('models.Account', related_name='reset_code')
+    exp = fields.DatetimeField(
+        default=datetime.now(timezone.utc) + timedelta(hours=24))

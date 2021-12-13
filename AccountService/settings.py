@@ -16,8 +16,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 MODEL_PATHS = (
     "core.accounts.models",
     "core.blog_users.models",
-    "core.employees.models",
-    "core.auth.models"
+    "core.employees.models"
 )
 
 def create_db_connection(app) -> None:

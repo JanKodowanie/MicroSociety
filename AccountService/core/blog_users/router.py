@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from .schemas import *
 from .managers import *
 from core.accounts.exceptions import *
-from core.auth.handlers import AuthHandler
+from core.accounts.middleware import AuthHandler
 from typing import List
 from uuid import UUID
 from core.events.event_publisher import EventPublisher

@@ -6,6 +6,7 @@ from utils.validators import *
 from tortoise.contrib.pydantic import pydantic_model_creator
 from datetime import datetime
 from .models import Account
+from common.auth.schemas import *
 
 
 class AccountCreateSchema(pydantic.BaseModel):
@@ -42,3 +43,18 @@ class AccountGetProfileSchema(pydantic.BaseModel):
     gender: AccountGender
     status: AccountStatus
     role: AccountRole
+    
+    
+class TokenSchema(pydantic.BaseModel):
+    access_token: str
+    token_type: str
+    data: UserDataSchema
+    
+    
+class PassResetCodeRequestSchema(pydantic.BaseModel):
+    email: pydantic.EmailStr
+    
+    
+class PasswordResetSchema(pydantic.BaseModel):
+    code: UUID
+    password: pydantic.constr(strip_whitespace=True, min_length=6, max_length=30)
