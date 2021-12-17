@@ -15,6 +15,7 @@ class BlogUserEditSchema(AccountEditSchema):
     
 class BlogUserGetDetailsSchema(AccountGetDetailsSchema):
     bio: Optional[str]
+    picture_url: Optional[str]
     points: int
     rank: AccountRank
     
@@ -37,6 +38,7 @@ class BlogUserGetDetailsSchema(AccountGetDetailsSchema):
     
 class BlogUserGetListSchema(AccountGetListSchema):
     rank: AccountRank
+    picture_url: Optional[str]
     
     class Config:
         orm_mode = True
@@ -55,6 +57,7 @@ class BlogUserGetListSchema(AccountGetListSchema):
     
 class BlogUserGetProfileSchema(AccountGetProfileSchema):
     bio: Optional[str]
+    picture_url: Optional[str]
     points: int
     rank: AccountRank
     

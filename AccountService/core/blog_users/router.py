@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from .schemas import *
 from .managers import *
 from core.accounts.managers import AccountManager
@@ -6,7 +6,6 @@ from core.accounts.exceptions import *
 from core.accounts.middleware import AuthHandler
 from typing import List
 from uuid import UUID
-from core.events.event_publisher import EventPublisher
 from .permissions import *
 from common.responses import *
 from common.enums import AccountStatus
@@ -26,15 +25,11 @@ router = APIRouter(
 async def register_blog_user(
     request: BlogUserCreateSchema, 
     manager: BlogUserManager = Depends()
-    # broker: EventPublisher = Depends()
 ):
     try:
         user = await manager.create(request)
     except CredentialsAlreadyTaken as e:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.details) 
-    
-    # await broker.publish_account_created(account.id, account.username, 
-    #                                      account.email, account.role)
     
     return user
 
@@ -75,11 +70,10 @@ async def get_account_details(
     manager: BlogUserManager = Depends(),
     account: Account = Depends(AuthHandler.get_user_from_token)
 ):
-    try:
-        user = await manager.get(account.id)
-    except AccountNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
-    return user
+    if not IsBlogUser.has_permission(account):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+    
+    return await manager.get(account.id)
 
 
 @router.put(
@@ -92,17 +86,50 @@ async def edit_account_data(
     manager: BlogUserManager = Depends(),
     account: Account = Depends(AuthHandler.get_user_from_token)
 ):
-    try:
-        user = await manager.get(account.id)
-    except AccountNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
-    
+    if not IsBlogUser.has_permission(account):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+
+    user = await manager.get(account.id)
     try:
         user = await manager.edit(user, request)
     except CredentialsAlreadyTaken as e:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.details) 
     
     return user
+
+
+@router.post(
+    '/details/profile_picture',
+    response_model = FileUrlResponse, 
+    status_code=status.HTTP_201_CREATED
+)
+async def create_profile_picture(
+    picture: UploadFile = File(...),
+    manager: BlogUserManager = Depends(),
+    account: Account = Depends(AuthHandler.get_user_from_token)
+):
+    if not IsBlogUser.has_permission(account):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+    
+    user = await manager.get(account.id)
+    url = await manager.save_profile_picture(user, picture)
+    
+    return FileUrlResponse(url=url)
+    
+        
+@router.delete(
+    '/details/profile_picture', 
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_profile_picture(
+    manager: BlogUserManager = Depends(),
+    account: Account = Depends(AuthHandler.get_user_from_token)
+):
+    if not IsBlogUser.has_permission(account):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+    
+    user = await manager.get(account.id)
+    await manager.delete_profile_picture(user)
 
 
 @router.delete(
@@ -112,8 +139,7 @@ async def edit_account_data(
 async def delete_blog_user_account(
     id: UUID, 
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     try:
         user = await manager.get_account(id)
@@ -123,9 +149,7 @@ async def delete_blog_user_account(
     if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
     
-    await manager.delete_account(user)
-    # await broker.publish_account_deleted(user_id)
-    return 
+    await manager.delete_account(user) 
 
 
 @router.patch(
@@ -135,8 +159,7 @@ async def delete_blog_user_account(
 async def ban_blog_user(
     id: UUID, 
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     try:
         user = await manager.get_account(id)
@@ -146,9 +169,7 @@ async def ban_blog_user(
     if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
     
-    await manager.change_users_status(user, AccountStatus.BANNED)
-    # await broker.publish_account_deleted(user_id)
-    return 
+    await manager.change_users_status(user, AccountStatus.BANNED) 
 
 
 @router.patch(
@@ -158,8 +179,7 @@ async def ban_blog_user(
 async def unban_blog_user(
     id: UUID, 
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     try:
         user = await manager.get_account(id)
@@ -170,5 +190,3 @@ async def unban_blog_user(
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
     
     await manager.change_users_status(user, AccountStatus.ACTIVE)
-    # await broker.publish_account_deleted(user_id)
-    return 

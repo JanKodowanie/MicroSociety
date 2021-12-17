@@ -45,3 +45,8 @@ BINDINGS = {
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+# media settings
+MEDIA_DIR = os.getenv('MEDIA_DIR')
+MEDIA_ROOT = '/media'

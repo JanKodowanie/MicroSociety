@@ -6,6 +6,9 @@ from core.accounts.exceptions import *
 from tortoise.exceptions import DoesNotExist
 from uuid import UUID
 from typing import List
+from common.file_manager import *
+from common.exceptions import InvalidFileExtension
+from fastapi import UploadFile
 
 
 class BlogUserManager:
@@ -40,3 +43,22 @@ class BlogUserManager:
     
     async def get_list(self, filters: dict = dict()) -> List[BlogUser]:
         return await BlogUser.filter(**filters).prefetch_related('account')
+    
+    async def save_profile_picture(self, instance: BlogUser, picture: UploadFile) -> str:
+        try:
+            path, url = FileManager().upload_file(
+                picture, instance.account.id, 'profile_pics', ['jpg', 'png', 'jpeg'])
+        except InvalidFileExtension as e:
+            raise e
+        
+        instance.picture_path = path
+        instance.picture_url = url
+        await instance.save()
+        return url
+        
+    async def delete_profile_picture(self, instance: BlogUser) -> None:
+        if instance.picture_path:
+            FileManager().delete_file(instance.picture_path)
+        instance.picture_path = None
+        instance.picture_url = None
+        await instance.save()
