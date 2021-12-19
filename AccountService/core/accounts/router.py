@@ -1,106 +1,82 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from core.accounts.schemas import *
-from core.accounts.exceptions import *
-from core.accounts.managers import AccountManager
-from core.auth.handlers import AuthHandler
-from typing import List
-from pydantic.types import UUID4
-from core.events.event_publisher import EventPublisher
+from fastapi.security import OAuth2PasswordRequestForm
+from .schemas import *
+from .exceptions import *
+from .managers import *
+from .middleware import AuthHandler
 
 
 router = APIRouter(
-    prefix="/accounts",
+    prefix="/account",
     tags=['Accounts']
 )
 
 
 @router.post(
-    '/new', 
-    response_model=AccountOutSchema,
+    '/login',
+    response_model=TokenSchema,
     status_code=status.HTTP_201_CREATED
 )
-async def register_account(
-    request: AccountCreateSchema, 
-    manager: AccountManager = Depends(),
-    broker: EventPublisher = Depends()
+async def login(
+    request: OAuth2PasswordRequestForm = Depends(), 
+    auth_handler: AuthHandler = Depends()
 ):
     try:
-        account = await manager.register_account(request)
-    except CredentialsAlreadyTaken as e:
-        raise HTTPException(422, detail=e.details) 
-    
-    await broker.publish_account_created(account.id, account.username, 
-                                         account.email, account.role)
-    return account
-
-
-@router.get(
-    '/list', 
-    response_model=List[AccountBasicSchema],
-    status_code=status.HTTP_200_OK
-)
-async def get_user_list(
-    manager: AccountManager = Depends()
-):
-    users = await manager.get_user_list()
-    return users
-
-
-@router.get(
-    '/{id}/profile', 
-    response_model=AccountOutPublicSchema,
-    status_code=status.HTTP_200_OK
-)
-async def get_user_profile(
-    id: UUID4, 
-    manager: AccountManager = Depends()
-):
-    try:
-        account = await manager.get_account(id)
-    except AccountNotFound as e:
-        raise HTTPException(404, detail=e.details)
-    return account
-
-
-@router.get(
-    '/details', 
-    response_model=AccountOutSchema,
-    status_code=status.HTTP_200_OK
-)
-async def get_account_details(
-    account: Account = Depends(AuthHandler.get_user_from_token)
-):
-    return account
-
-
-@router.put(
-    '/details', 
-    response_model=AccountOutSchema,
-    status_code=status.HTTP_200_OK
-)
-async def edit_account_data(
-    request: AccountEditSchema, 
-    manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token)
-):
-    try:
-        account = await manager.edit_account(account, request)
-    except CredentialsAlreadyTaken as e:
-        raise HTTPException(422, detail=e.details) 
-    
-    return account
+        token = await auth_handler.authenticate_user(email=request.username, 
+                                                     password=request.password)
+    except InvalidCredentials as e:   
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail=e.details)
+    return token
 
 
 @router.delete(
-    '/details', 
+    '/delete', 
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_account(
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
-    user_id = account.id
     await manager.delete_account(account)
-    await broker.publish_account_deleted(user_id)
     return 
+
+
+@router.post(
+    '/password-reset/code',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def get_password_reset_code(
+    request: PassResetCodeRequestSchema,
+    reset_code_manager: PasswordResetCodeManager = Depends(),
+    account_manager: AccountManager = Depends() 
+):
+    try:
+        account = await account_manager.get_account_by_email(request.email)
+    except AccountNotFound:
+        return
+    
+    await reset_code_manager.create_password_reset_code(account)
+    
+    
+@router.patch(
+    '/password-reset',
+    response_model=PasswordResetSuccessResponse,
+    status_code=status.HTTP_200_OK
+)
+async def reset_password(
+    request: PasswordResetSchema,
+    reset_code_manager: PasswordResetCodeManager = Depends()
+):
+    try:
+        code = await reset_code_manager.get_password_reset_code(request.code)
+    except PasswordResetCodeNotFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=e.details)
+    try:
+        await reset_code_manager.reset_password(code, request.password)
+    except PasswordResetCodeExpired as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=e.details)
+    
+    return PasswordResetSuccessResponse()

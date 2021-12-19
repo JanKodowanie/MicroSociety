@@ -1,18 +1,23 @@
 from typing import List, Dict, Optional
-from .models import Account
-from .exceptions import AccountNotFound, CredentialsAlreadyTaken
-from utils.hash import Hash
+from fastapi import Depends
+from core.events.event_publisher import EventPublisher
+from .models import *
+from .exceptions import *
 from .schemas import AccountCreateSchema, AccountEditSchema
+from common.enums import AccountRole
+from utils.hash import Hash
 from uuid import UUID
 from tortoise.exceptions import DoesNotExist
 
 
 class AccountManager:
     
-    def __init__(self):
+    def __init__(self, broker: EventPublisher = Depends()):
         self.hash = Hash()
+        self.broker = broker
         
-    async def register_account(self, data: AccountCreateSchema) -> Account:
+    async def register_account(self, data: AccountCreateSchema, 
+                               role: AccountRole = AccountRole.STANDARD) -> Account:
         data.password = self.hash.hash_password(data.password)    
         
         error_fields = []
@@ -28,7 +33,7 @@ class AccountManager:
             raise CredentialsAlreadyTaken('Credentials already taken',
                     details=self._compose_credentials_taken_error(error_fields))
         
-        account = await Account.create(**data.dict())
+        account = await Account.create(**data.dict(), role=role)
         return account
         
     async def get_account(self, uuid: UUID) -> Account:
@@ -48,7 +53,11 @@ class AccountManager:
         return account
     
     async def delete_account(self, account: Account) -> None:
+        id = account.id
+        role = account.role
         await account.delete()
+        if role != AccountRole.ADMINISTRATOR:
+            await self.broker.publish_blog_user_deleted(id)
         
     async def get_user_list(self, filters: Optional[dict] = None) -> List[Account]:
         if not filters:
@@ -58,12 +67,12 @@ class AccountManager:
         
     async def edit_account(self, account: Account, data: AccountEditSchema) -> Account:
         error_fields = []
-        if data.email:
+        if data.email and account.email != data.email:
             email_taken = await self._check_if_email_is_taken(data.email)
             if email_taken:
                 error_fields.append('email')
                 
-        if data.username:
+        if data.username and account.username != data.username:
             username_taken = await self._check_if_username_is_taken(data.username)
             if username_taken:
                 error_fields.append('username')
@@ -76,8 +85,6 @@ class AccountManager:
             account.username = data.username
         if data.email:
             account.email = data.email
-        if data.bio:
-            account.bio = data.bio
         if data.gender:
             account.gender = data.gender
             
@@ -86,6 +93,10 @@ class AccountManager:
 
     async def change_users_password(self, account: Account, new_password: str):
         account.password = self.hash.hash_password(new_password)
+        await account.save()
+        
+    async def change_users_status(self, account: Account, status: AccountStatus):
+        account.status = status
         await account.save()
 
     async def _check_if_email_is_taken(self, email: str) -> bool:
@@ -112,3 +123,30 @@ class AccountManager:
             errors[field_names[i]] = messages[i]
             
         return errors
+    
+    
+class PasswordResetCodeManager:
+    def __init__(self, broker: EventPublisher = Depends()):
+        self.broker = broker
+    
+    async def create_password_reset_code(self, user: Account) -> PasswordResetCode:
+        await PasswordResetCode.filter(user=user).delete()
+        instance = await PasswordResetCode.create(user=user)
+        await self.broker.publish_password_reset_code_created(instance.code, user.username, user.email)
+        return instance
+    
+    async def get_password_reset_code(self, code: UUID) -> PasswordResetCode:
+        try:
+            code = await PasswordResetCode.get(code=code).prefetch_related('user')
+        except DoesNotExist:
+            raise PasswordResetCodeNotFound()
+        
+        return code
+    
+    async def reset_password(self, code: PasswordResetCode, new_pass: str):
+        if code.exp < datetime.now(timezone.utc):
+            await code.delete()
+            raise PasswordResetCodeExpired()
+        
+        await AccountManager().change_users_password(code.user, new_pass)
+        await code.delete()

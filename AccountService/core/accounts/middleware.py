@@ -4,23 +4,23 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt
 from .schemas import *
 from .exceptions import *
+from .managers import AccountManager
+from .models import Account
 from common.auth.schemas import *
-from core.accounts.exceptions import AccountNotFound
-from core.accounts.managers import AccountManager
-from core.accounts.models import Account
 from utils.hash import Hash
 from fastapi.security import OAuth2PasswordBearer
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/account/login")
 
 
 class TokenManager:
 
     def create_token(self, account: Account):
         to_encode = self._create_jwt_data(account)
+        data = UserDataSchema(**to_encode)
         encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-        return encoded_jwt
+        return encoded_jwt, data
 
     def decode_token(self, token: str) -> UserDataSchema:
         try:
@@ -61,10 +61,10 @@ class AuthHandler:
         if not Hash().verify(user.password, password):
             raise InvalidCredentials()
         
-        access_token = TokenManager().create_token(user)
+        access_token, data = TokenManager().create_token(user)
         token_type = 'bearer'
         
-        return TokenSchema(access_token=access_token, token_type=token_type)
+        return TokenSchema(access_token=access_token, token_type=token_type, data=data)
     
     @classmethod
     async def get_user_from_token(cls, token: str = Depends(oauth2_scheme)) -> Account:

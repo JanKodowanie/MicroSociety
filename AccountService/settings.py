@@ -15,7 +15,9 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
     "core.accounts.models",
-    "core.auth.models"
+    "core.blog_users.models",
+    "core.employees.models",
+    "core.events.models"
 )
 
 def create_db_connection(app) -> None:
@@ -36,7 +38,8 @@ QUEUE = 'account_queue'
 EXCHANGE = 'account_exchange'
 
 BINDINGS = {
-    'blog_exchange': ('like.created', 'like.deleted')
+    'blog_exchange': ('like.created', 'like.deleted'),
+    'account_exchange': ('#',)
 }
 
 
@@ -44,3 +47,8 @@ BINDINGS = {
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+# media settings
+MEDIA_DIR = os.getenv('MEDIA_DIR')
+MEDIA_ROOT = '/media'

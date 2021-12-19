@@ -1,7 +1,6 @@
 import aio_pika as pika
 import settings
 import json
-import uuid
 import sys
 from settings import logger
 
@@ -41,18 +40,20 @@ class BrokerClient:
         logger.info('Established async broker listener.')
         return self.connection
     
-    async def send_message(self, message: str, routing_key: str):
+    async def send_message(self, message: str, routing_key: str, sender: str, message_id: int):
         """Method to publish message to RabbitMQ"""
         await self.exchange.publish(
-            message=pika.Message(body=message.encode(), message_id=str(uuid.uuid4())),
+            message=pika.Message(body=message.encode(), type=sender, message_id=message_id),
             routing_key=routing_key
         )
-        logger.info('Published event: ' + message)
+        logger.info(f'Published event {message_id}: {message}')
     
     async def _process_incoming_message(self, message: pika.Message):
         """Processing incoming message from RabbitMQ"""
         message.ack()
-        body = message.body
+        message_id = message.message_id
+        sender = message.type
+        body = json.loads(message.body)
         if body:
-            logger.info('Received event: ' + str(body.decode()))
-            await self.callable(json.loads(body))
+            logger.info(f'Received event no. {message_id} from {sender}: {str(body)}')
+            await self.callable(body, message_id, sender)
