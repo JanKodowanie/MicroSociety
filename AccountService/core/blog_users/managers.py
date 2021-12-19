@@ -41,8 +41,10 @@ class BlogUserManager:
         await instance.save()
         return instance
     
-    async def get_list(self, filters: dict = dict()) -> List[BlogUser]:
-        return await BlogUser.filter(**filters).prefetch_related('account')
+    async def get_list(self, params: ProfileListQueryParams) -> List[BlogUser]:
+        filters = params.dict()
+        ordering = filters.pop('ordering')
+        return await BlogUser.filter(**filters).order_by(ordering).prefetch_related('account')
     
     async def save_profile_picture(self, instance: BlogUser, picture: UploadFile) -> str:
         try:

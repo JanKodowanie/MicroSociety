@@ -40,9 +40,10 @@ async def register_blog_user(
     status_code=status.HTTP_200_OK
 )
 async def get_blog_user_profile_list(
-    manager: BlogUserManager = Depends()
+    manager: BlogUserManager = Depends(),
+    params: ProfileListQueryParams = Depends()
 ):
-    return await manager.get_list()
+    return await manager.get_list(params)
 
 
 @router.get(
@@ -51,7 +52,7 @@ async def get_blog_user_profile_list(
     status_code=status.HTTP_200_OK
 )
 async def get_blog_user_profile(
-    id: UUID, 
+    id: UUID,
     manager: BlogUserManager = Depends()
 ):
     try:

@@ -1,8 +1,10 @@
 import pydantic
+from pydantic import validator
 from typing import Optional
 from common.enums import *
 from core.accounts.schemas import *
 from .models import *
+from .enums import *
 
 
 class BlogUserCreateSchema(AccountCreateSchema):
@@ -75,3 +77,25 @@ class BlogUserGetProfileSchema(AccountGetProfileSchema):
             obj.role = obj.account.role
             
         return super().from_orm(obj)
+    
+    
+class ProfileListQueryParams(pydantic.BaseModel):
+    username: Optional[str]
+    status: Optional[AccountStatus]
+    ordering: Optional[ProfileListOrdering] = ProfileListOrdering.DATE_JOINED_DESCENDING
+    
+    def dict(self):
+        filters_dict = {}
+        if self.username:
+            filters_dict['account__username__icontains'] = self.username
+        if self.status:
+            filters_dict['account__status'] = self.status
+            
+        if self.ordering == 'date_joined':
+            filters_dict['ordering'] = 'account__date_joined'
+        elif self.ordering == '-date_joined':
+            filters_dict['ordering'] = '-account__date_joined'
+        else:
+            filters_dict['ordering'] = self.ordering
+            
+        return filters_dict

@@ -1,6 +1,8 @@
 from tortoise import fields, models
 from datetime import datetime, timezone, timedelta
 from common.enums import *
+from tortoise.signals import pre_delete
+from common.file_manager import FileManager
 
 
 class Account(models.Model):
@@ -13,12 +15,11 @@ class Account(models.Model):
     status = fields.CharEnumField(enum_type=AccountStatus, default=AccountStatus.ACTIVE)
     role = fields.CharEnumField(enum_type=AccountRole, default=AccountRole.STANDARD)
     
-    
     class Meta:
         ordering = ["-date_joined"]
         
     class PydanticMeta:
-        exclude = ["password", "reset_code", "bloguser", "employee"]
+        exclude = ["password", "reset_code", "blog_user", "employee"]
         
         
 class PasswordResetCode(models.Model):
@@ -26,3 +27,10 @@ class PasswordResetCode(models.Model):
     user = fields.OneToOneField('models.Account', related_name='reset_code')
     exp = fields.DatetimeField(
         default=datetime.now(timezone.utc) + timedelta(hours=24))
+    
+    
+@pre_delete(Account)
+async def account_pre_delete(sender, instance, using_db) -> None:
+    if instance.role != AccountRole.ADMINISTRATOR:
+        await instance.fetch_related('blog_user')
+        FileManager().delete_file(instance.blog_user.picture_path)

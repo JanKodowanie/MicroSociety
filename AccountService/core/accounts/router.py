@@ -37,12 +37,9 @@ async def login(
 )
 async def delete_account(
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
-    user_id = account.id
     await manager.delete_account(account)
-    # await broker.publish_account_deleted(user_id)
     return 
 
 
@@ -62,8 +59,8 @@ async def get_password_reset_code(
         return
     
     code = await reset_code_manager.create_password_reset_code(account)
-    # await event_publisher.publish_password_reset_code_created(
-    #                     code.code, account.username, account.email)
+    await event_publisher.publish_password_reset_code_created(
+                        code.code, account.username, account.email)
     
     
 @router.patch(

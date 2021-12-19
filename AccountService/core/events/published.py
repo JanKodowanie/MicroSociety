@@ -1,13 +1,8 @@
 from pydantic import BaseModel
 from uuid import UUID
-from common.enums import AccountRole
+from common.enums import *
 
-
-class AccountDeleted(BaseModel):
-    event: str = 'account.deleted'
-    id: UUID
-    
-    
+        
 class PasswordResetCodeCreated(BaseModel):
     event: str = 'account.password_reset'
     username: str
@@ -15,9 +10,30 @@ class PasswordResetCodeCreated(BaseModel):
     code: UUID
     
     
-class AccountCreated(BaseModel):
-    event: str = 'account.created'
+class BlogUserCreated(BaseModel):
+    event: str = 'blog_user.created'
     id: UUID
     username: str
     email: str
+    role: AccountRole
+    gender: AccountGender
+    rank: AccountRank
+    picture_url: str
+    
+    
+class BlogUserUpdated(BlogUserCreated):
+    event: str = 'blog_user.updated'
+    
+    
+class BlogUserDeleted(BaseModel):
+    event: str = 'blog_user.deleted'
+    id: UUID
+    
+    
+class EmployeeCreated(BaseModel):
+    event: str = 'employee.created'
+    email: str
+    password: str
+    firstname: str
+    lastname: str
     role: AccountRole

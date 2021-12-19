@@ -3,7 +3,7 @@ from common.enums import *
 
 
 class BlogUser(models.Model):
-    account = fields.OneToOneField('models.Account')
+    account = fields.OneToOneField(model_name='models.Account', related_name='blog_user')
     picture_url = fields.CharField(max_length=300, null=True)
     picture_path = fields.CharField(max_length=300, null=True)
     bio = fields.TextField(max_length=300, null=True)
