@@ -1,4 +1,6 @@
 from typing import List, Dict, Optional
+from fastapi import Depends
+from core.events.event_publisher import EventPublisher
 from .models import *
 from .exceptions import *
 from .schemas import AccountCreateSchema, AccountEditSchema
@@ -10,8 +12,9 @@ from tortoise.exceptions import DoesNotExist
 
 class AccountManager:
     
-    def __init__(self):
+    def __init__(self, broker: EventPublisher = Depends()):
         self.hash = Hash()
+        self.broker = broker
         
     async def register_account(self, data: AccountCreateSchema, 
                                role: AccountRole = AccountRole.STANDARD) -> Account:
@@ -50,7 +53,11 @@ class AccountManager:
         return account
     
     async def delete_account(self, account: Account) -> None:
+        id = account.id
+        role = account.role
         await account.delete()
+        if role != AccountRole.ADMINISTRATOR:
+            await self.broker.publish_blog_user_deleted(id)
         
     async def get_user_list(self, filters: Optional[dict] = None) -> List[Account]:
         if not filters:
@@ -119,10 +126,14 @@ class AccountManager:
     
     
 class PasswordResetCodeManager:
+    def __init__(self, broker: EventPublisher = Depends()):
+        self.broker = broker
     
     async def create_password_reset_code(self, user: Account) -> PasswordResetCode:
         await PasswordResetCode.filter(user=user).delete()
-        return await PasswordResetCode.create(user=user)
+        instance = await PasswordResetCode.create(user=user)
+        await self.broker.publish_password_reset_code_created(instance.code, user.username, user.email)
+        return instance
     
     async def get_password_reset_code(self, code: UUID) -> PasswordResetCode:
         try:
@@ -131,3 +142,11 @@ class PasswordResetCodeManager:
             raise PasswordResetCodeNotFound()
         
         return code
+    
+    async def reset_password(self, code: PasswordResetCode, new_pass: str):
+        if code.exp < datetime.now(timezone.utc):
+            await code.delete()
+            raise PasswordResetCodeExpired()
+        
+        await AccountManager().change_users_password(code.user, new_pass)
+        await code.delete()

@@ -4,7 +4,6 @@ from .schemas import *
 from .exceptions import *
 from .managers import *
 from .middleware import AuthHandler
-from core.events.event_publisher import EventPublisher
 
 
 router = APIRouter(
@@ -50,40 +49,34 @@ async def delete_account(
 async def get_password_reset_code(
     request: PassResetCodeRequestSchema,
     reset_code_manager: PasswordResetCodeManager = Depends(),
-    account_manager: AccountManager = Depends(),
-    event_publisher: EventPublisher = Depends()   
+    account_manager: AccountManager = Depends() 
 ):
     try:
         account = await account_manager.get_account_by_email(request.email)
     except AccountNotFound:
         return
     
-    code = await reset_code_manager.create_password_reset_code(account)
-    await event_publisher.publish_password_reset_code_created(
-                        code.code, account.username, account.email)
+    await reset_code_manager.create_password_reset_code(account)
     
     
 @router.patch(
     '/password-reset',
+    response_model=PasswordResetSuccessResponse,
     status_code=status.HTTP_200_OK
 )
 async def reset_password(
     request: PasswordResetSchema,
-    reset_code_manager: PasswordResetCodeManager = Depends(),
-    account_manager: AccountManager = Depends()
+    reset_code_manager: PasswordResetCodeManager = Depends()
 ):
     try:
         code = await reset_code_manager.get_password_reset_code(request.code)
     except PasswordResetCodeNotFound as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=e.details)
-    
-    if code.exp < datetime.now(timezone.utc):
-        await code.delete()
+    try:
+        await reset_code_manager.reset_password(code, request.password)
+    except PasswordResetCodeExpired as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Password reset code has expired')
-        
-    await account_manager.change_users_password(code.user, request.password)
-    await code.delete()
+                            detail=e.details)
     
-    return({"detail": "Password reset successfully."})
+    return PasswordResetSuccessResponse()

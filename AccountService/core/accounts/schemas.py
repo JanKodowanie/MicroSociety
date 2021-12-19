@@ -59,3 +59,7 @@ class PassResetCodeRequestSchema(pydantic.BaseModel):
 class PasswordResetSchema(pydantic.BaseModel):
     code: UUID
     password: pydantic.constr(strip_whitespace=True, min_length=6, max_length=30)
+    
+
+class PasswordResetSuccessResponse(pydantic.BaseModel):
+    detail: str = "Password reset successfully"

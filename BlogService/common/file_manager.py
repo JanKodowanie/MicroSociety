@@ -32,5 +32,6 @@ class FileManager:
         return path, url
                 
     def delete_file(self, path: str):
-        if os.path.exists(path):
-            os.remove(path)
+        if path:
+            if os.path.exists(path):
+                os.remove(path)

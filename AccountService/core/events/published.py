@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from uuid import UUID
 from common.enums import *
+from typing import Optional
 
         
 class PasswordResetCodeCreated(BaseModel):
@@ -18,7 +19,7 @@ class BlogUserCreated(BaseModel):
     role: AccountRole
     gender: AccountGender
     rank: AccountRank
-    picture_url: str
+    picture_url: Optional[str]
     
     
 class BlogUserUpdated(BlogUserCreated):

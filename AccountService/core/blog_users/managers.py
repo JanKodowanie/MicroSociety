@@ -8,18 +8,24 @@ from uuid import UUID
 from typing import List
 from common.file_manager import *
 from common.exceptions import InvalidFileExtension
-from fastapi import UploadFile
+from fastapi import UploadFile, Depends
+from core.events.event_publisher import EventPublisher
+
 
 
 class BlogUserManager:
+    
+    def __init__(self, broker: EventPublisher = Depends()):
+        self.broker = broker
     
     async def create(self, data: BlogUserCreateSchema, role: AccountRole = AccountRole.STANDARD) -> BlogUser:
         try:
             account = await AccountManager().register_account(data, role)
         except CredentialsAlreadyTaken as e:
             raise e
-        
-        return await BlogUser.create(account=account, **data.dict())
+        instance = await BlogUser.create(account=account, **data.dict())
+        await self.broker.publish_blog_user_created(instance)
+        return instance
     
     async def get(self, id: UUID) -> BlogUser:
         try:
@@ -39,6 +45,7 @@ class BlogUserManager:
             instance.bio = data.bio
             
         await instance.save()
+        await self.broker.publish_blog_user_updated(instance)
         return instance
     
     async def get_list(self, params: ProfileListQueryParams) -> List[BlogUser]:

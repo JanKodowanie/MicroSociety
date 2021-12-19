@@ -16,7 +16,8 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 MODEL_PATHS = (
     "core.accounts.models",
     "core.blog_users.models",
-    "core.employees.models"
+    "core.employees.models",
+    "core.events.models"
 )
 
 def create_db_connection(app) -> None:
@@ -37,7 +38,8 @@ QUEUE = 'account_queue'
 EXCHANGE = 'account_exchange'
 
 BINDINGS = {
-    'blog_exchange': ('like.created', 'like.deleted')
+    'blog_exchange': ('like.created', 'like.deleted'),
+    'account_exchange': ('#',)
 }
 
 

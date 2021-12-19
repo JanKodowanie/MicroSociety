@@ -1,6 +1,8 @@
 from .schemas import *
 from .models import *
+from fastapi import Depends
 from common.enums import AccountRole
+from core.events.event_publisher import EventPublisher
 from core.accounts.managers import AccountManager
 from core.accounts.exceptions import *
 from core.blog_users.managers import BlogUserManager
@@ -11,23 +13,28 @@ from typing import List
 
 class EmployeeManager:
     
+    def __init__(self, broker: EventPublisher = Depends()):
+        self.broker = broker
+    
     async def create_admin(self, data: EmployeeAdminCreateSchema) -> Employee:
-        print(data.dict())
         try:
             account = await AccountManager().register_account(data, AccountRole.ADMINISTRATOR)
         except CredentialsAlreadyTaken as e:
             raise e
         
-        return await Employee.create(account=account, **data.dict())
+        employee = await Employee.create(account=account, **data.dict())
+        await self.broker.publish_employee_created(employee, data.password)
+        return employee
     
     async def create_moderator(self, data: EmployeeModeratorCreateSchema) -> Employee:
-        print(data.dict())
         try:
             blog_user = await BlogUserManager().create(data, AccountRole.MODERATOR)
         except CredentialsAlreadyTaken as e:
             raise e
         
-        return await Employee.create(account=blog_user.account, **data.dict())
+        employee = await Employee.create(account=blog_user.account, **data.dict())
+        await self.broker.publish_employee_created(employee, data.password)
+        return employee
     
     async def get(self, id: UUID) -> Employee:
         try:
