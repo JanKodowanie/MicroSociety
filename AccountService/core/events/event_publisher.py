@@ -16,8 +16,8 @@ class EventPublisher:
     async def _publish_event(self, body: str, routing_key: str, message_id: str):
         await self.broker.send_message(body, routing_key, 'accounts', message_id)
         
-    async def publish_blog_user_deleted(self, id: UUID):
-        message_schema = BlogUserDeleted(id=str(id))
+    async def publish_blog_user_deleted(self, id: UUID, username: str, email: str):
+        message_schema = BlogUserDeleted(id=str(id), username=username, email=email)
         body = message_schema.json()
         event = await PublishedEvent.create(name=message_schema.event, body=body)
         

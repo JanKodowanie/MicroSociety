@@ -22,9 +22,9 @@ EXCHANGE = 'email_exchange'
 
 BINDINGS = {
     'account_exchange': 
-        ('account.password_reset', 
-         'account.created',
-         'account.deleted')
+        ('account.*', 
+         'blog_user.*',
+         'employee.*')
 }
 
 

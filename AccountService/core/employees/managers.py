@@ -13,12 +13,15 @@ from typing import List
 
 class EmployeeManager:
     
-    def __init__(self, broker: EventPublisher = Depends()):
+    def __init__(self, broker: EventPublisher = Depends(), blog_user_manager: BlogUserManager = Depends(),
+                 account_manager: AccountManager = Depends()):
         self.broker = broker
+        self.blog_user_manager = blog_user_manager
+        self.account_manager = account_manager
     
     async def create_admin(self, data: EmployeeAdminCreateSchema) -> Employee:
         try:
-            account = await AccountManager().register_account(data, AccountRole.ADMINISTRATOR)
+            account = await self.account_manager.register_account(data, AccountRole.ADMINISTRATOR)
         except CredentialsAlreadyTaken as e:
             raise e
         
@@ -28,7 +31,7 @@ class EmployeeManager:
     
     async def create_moderator(self, data: EmployeeModeratorCreateSchema) -> Employee:
         try:
-            blog_user = await BlogUserManager().create(data, AccountRole.MODERATOR)
+            blog_user = await self.blog_user_manager.create(data, AccountRole.MODERATOR)
         except CredentialsAlreadyTaken as e:
             raise e
         

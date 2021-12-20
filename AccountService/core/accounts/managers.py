@@ -18,7 +18,8 @@ class AccountManager:
         
     async def register_account(self, data: AccountCreateSchema, 
                                role: AccountRole = AccountRole.STANDARD) -> Account:
-        data.password = self.hash.hash_password(data.password)    
+        data_dict = data.dict()
+        hashed_password = self.hash.hash_password(data_dict.pop('password'))    
         
         error_fields = []
         email_taken = await self._check_if_email_is_taken(data.email)
@@ -33,7 +34,7 @@ class AccountManager:
             raise CredentialsAlreadyTaken('Credentials already taken',
                     details=self._compose_credentials_taken_error(error_fields))
         
-        account = await Account.create(**data.dict(), role=role)
+        account = await Account.create(**data_dict, password=hashed_password, role=role)
         return account
         
     async def get_account(self, uuid: UUID) -> Account:
@@ -55,9 +56,11 @@ class AccountManager:
     async def delete_account(self, account: Account) -> None:
         id = account.id
         role = account.role
+        username = account.username
+        email = account.email
         await account.delete()
         if role != AccountRole.ADMINISTRATOR:
-            await self.broker.publish_blog_user_deleted(id)
+            await self.broker.publish_blog_user_deleted(id, username, email)
         
     async def get_user_list(self, filters: Optional[dict] = None) -> List[Account]:
         if not filters:
@@ -126,8 +129,9 @@ class AccountManager:
     
     
 class PasswordResetCodeManager:
-    def __init__(self, broker: EventPublisher = Depends()):
+    def __init__(self, broker: EventPublisher = Depends(), account_manager: AccountManager = Depends()):
         self.broker = broker
+        self.account_manager = account_manager
     
     async def create_password_reset_code(self, user: Account) -> PasswordResetCode:
         await PasswordResetCode.filter(user=user).delete()
@@ -148,5 +152,5 @@ class PasswordResetCodeManager:
             await code.delete()
             raise PasswordResetCodeExpired()
         
-        await AccountManager().change_users_password(code.user, new_pass)
+        await self.account_manager.change_users_password(code.user, new_pass)
         await code.delete()

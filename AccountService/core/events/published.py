@@ -29,6 +29,8 @@ class BlogUserUpdated(BlogUserCreated):
 class BlogUserDeleted(BaseModel):
     event: str = 'blog_user.deleted'
     id: UUID
+    username: str
+    email: str
     
     
 class EmployeeCreated(BaseModel):

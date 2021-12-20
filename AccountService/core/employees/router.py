@@ -25,8 +25,7 @@ router = APIRouter(
 async def register_moderator(
     request: EmployeeModeratorCreateSchema, 
     manager: EmployeeManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     if not IsAdministrator.has_permission(account):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
@@ -36,7 +35,6 @@ async def register_moderator(
     except CredentialsAlreadyTaken as e:
         raise HTTPException(422, detail=e.details) 
     
-    await broker.publish_employee_created(employee, request.password)
     return employee
 
 
@@ -48,8 +46,7 @@ async def register_moderator(
 async def register_administrator(
     request: EmployeeAdminCreateSchema, 
     manager: EmployeeManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token),
-    broker: EventPublisher = Depends()
+    account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     if not IsAdministrator.has_permission(account):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
@@ -59,7 +56,6 @@ async def register_administrator(
     except CredentialsAlreadyTaken as e:
         raise HTTPException(422, detail=e.details) 
     
-    await broker.publish_employee_created(employee, request.password)
     return employee
 
 
