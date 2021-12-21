@@ -35,7 +35,6 @@ async def create_blog_post(
 ):
     if not IsBlogUser.has_permission(user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
-    print(picture)
     
     try:
         instance = await manager.create(user.sub, content, picture)
