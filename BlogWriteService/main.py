@@ -2,7 +2,9 @@ import uvicorn
 import settings
 import asyncio
 import sys
+import os
 from fastapi import Depends
+from fastapi.staticfiles import StaticFiles
 from common.ms_app import MSApp
 from core.events.event_handler import EventHandler
 from core.posts.router import router as posts_router
@@ -10,6 +12,13 @@ from core.posts.router import router as posts_router
 
 app = MSApp()
 app.include_router(posts_router)
+
+try:        
+    os.mkdir(settings.MEDIA_DIR)
+except Exception:
+    pass
+
+app.mount(settings.MEDIA_ROOT, StaticFiles(directory=settings.MEDIA_DIR), name="media")
 
 
 try:

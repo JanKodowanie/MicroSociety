@@ -11,4 +11,15 @@ class IsBlogUser:
     
     @classmethod
     def has_object_permission(cls, object: Model, user: UserDataSchema) -> bool:
-        return user.role == AccountRole.MODERATOR or object.creator_id == user.sub
+        return cls.has_permission(user) and object.creator_id == user.sub
+    
+    
+class IsModerator:
+    
+    @classmethod
+    def has_permission(cls, user: UserDataSchema) -> bool:
+        return user.role == AccountRole.MODERATOR
+    
+    @classmethod
+    def has_object_permission(cls, object: Model, user: UserDataSchema) -> bool:
+        return cls.has_permission(user)

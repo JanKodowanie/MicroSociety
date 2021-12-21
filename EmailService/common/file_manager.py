@@ -3,21 +3,20 @@ import settings
 import os
 from .exceptions import *
 from fastapi import UploadFile
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 class FileManager:
     
     def upload_file(self, _file: UploadFile, 
-                    filename: str, directory: str, extensions = List[str]) -> Tuple[str, str]:
+                    filename: Optional[str], directory: str, extensions = List[str]) -> Tuple[str, str]:
         try:
-            ext = _file.filename.split('.')[1]
-        except Exception:
-            raise InvalidFileExtension('Uploaded file has no extension')
-    
-        if ext not in extensions:
-            raise InvalidFileExtension(
-                'Invalid file extension. Allowed extensions: ' + ', '.join(extensions))
+            ext = self.validate_file(_file, extensions)
+        except InvalidFileExtension as e:
+            raise e
+            
+        if not filename:
+            filename = _file.filename.split('.')[0]
             
         abs_directory = '/'.join([settings.MEDIA_DIR, directory])
         if not os.path.exists(abs_directory):
@@ -35,3 +34,15 @@ class FileManager:
         if path:
             if os.path.exists(path):
                 os.remove(path)
+                
+    def validate_file(self, _file: UploadFile, extensions = List[str]) -> str:
+        try:
+            ext = _file.filename.split('.')[1]
+        except Exception:
+            raise InvalidFileExtension('Uploaded file has no extension')
+    
+        if ext not in extensions:
+            raise InvalidFileExtension(
+                'Invalid file extension. Allowed extensions: ' + ', '.join(extensions))
+            
+        return ext

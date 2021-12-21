@@ -15,6 +15,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
     'core.posts.models',
+    'core.comments.models'
 )
 
 def create_db_connection(app) -> None:
@@ -35,7 +36,7 @@ QUEUE = 'blog_queue'
 EXCHANGE = 'blog_exchange'
 
 BINDINGS = {
-    'account_exchange': ('account.deleted',)
+    'account_exchange': ('blog_user.deleted',)
 }
 
 
@@ -43,3 +44,8 @@ BINDINGS = {
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+# media settings
+MEDIA_DIR = os.getenv('MEDIA_DIR')
+MEDIA_ROOT = '/media'
