@@ -15,7 +15,8 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
     'core.posts.models',
-    'core.comments.models'
+    'core.comments.models',
+    'core.events.models'
 )
 
 def create_db_connection(app) -> None:

@@ -4,6 +4,7 @@ from .exceptions import *
 from fastapi import Depends, UploadFile
 from tortoise.exceptions import DoesNotExist
 from common.file_manager import FileManager
+from core.events.event_publisher import EventPublisher
 
 
 class TagManager:
@@ -38,8 +39,9 @@ class TagManager:
 
 class BlogPostManager:
     
-    def __init__(self, tag_manager: TagManager = Depends()):
+    def __init__(self, tag_manager: TagManager = Depends(), broker: EventPublisher = Depends()):
         self.tag_manager = tag_manager
+        self.broker = broker
 
     async def create(self, creator_id: UUID, 
                                content: str, picture: Optional[UploadFile]) -> BlogPost:
@@ -61,6 +63,7 @@ class BlogPostManager:
         
         await self.tag_manager.create_tags_from_post(instance)
         await instance.fetch_related('tags', 'comments')
+        await self.broker.publish_blog_post_created(instance)
         return instance
     
     async def get(self, id: int) -> BlogPost:
@@ -94,11 +97,14 @@ class BlogPostManager:
             await self.tag_manager.create_tags_from_post(instance)
         
         await instance.fetch_related('tags', 'comments')
+        await self.broker.publish_blog_post_updated(instance)
         return instance
     
     async def delete(self, instance: BlogPost):
         await self.tag_manager.decrease_post_tags_popularity(instance)
+        id = instance.id
         await instance.delete()
+        await self.broker.publish_blog_post_deleted(id)
 
     async def get_list(self, filters: dict = None) -> List[BlogPost]:
         if not filters:
@@ -108,9 +114,10 @@ class BlogPostManager:
         return posts
     
     async def bulk_delete(self, filters: dict = None):
-        posts = await BlogPost.filter(**filters)
+        posts = await BlogPost.filter(**filters).prefetch_related('tags')
         for post in posts:
-            self.delete(post)
+            await TagManager().decrease_post_tags_popularity(post)
+            await post.delete()
             
     async def delete_picture(self, instance: BlogPost):
         if instance.picture_path:

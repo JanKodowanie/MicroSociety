@@ -1,6 +1,8 @@
 from tortoise import fields, models
 from typing import List
 from core.comments.models import Comment
+from tortoise.signals import post_delete
+from common.file_manager import FileManager
 import re
 
 
@@ -30,3 +32,9 @@ class BlogPost(models.Model):
         hashtag_list = re.findall(regex, self.content)
         
         return hashtag_list
+    
+    
+@post_delete(BlogPost)
+async def blog_post_post_delete(sender, instance, using_db) -> None:
+    if instance.picture_path:
+        FileManager().delete_file(instance.picture_path)

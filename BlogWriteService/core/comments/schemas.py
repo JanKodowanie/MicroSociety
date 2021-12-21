@@ -1,6 +1,7 @@
 import pydantic
 from uuid import UUID
 from datetime import datetime
+from .models import *
 
 
 class CommentCreateSchema(pydantic.BaseModel):
@@ -13,6 +14,7 @@ class CommentUpdateSchema(CommentCreateSchema):
 
 class CommentGetSchema(pydantic.BaseModel):
     id: int
+    post_id: int
     content: str
     creator_id: UUID
     date_created: datetime

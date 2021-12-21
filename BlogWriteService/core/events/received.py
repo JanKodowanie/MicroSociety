@@ -2,6 +2,6 @@ from pydantic import BaseModel
 from uuid import UUID
 
 
-class AccountDeleted(BaseModel):
-    event: str = 'account.deleted'
+class BlogUserDeleted(BaseModel):
+    event: str = 'blog_user.deleted'
     id: UUID
