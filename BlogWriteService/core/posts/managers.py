@@ -67,7 +67,7 @@ class BlogPostManager:
         try:
             instance = await BlogPost.get(id=id)
         except DoesNotExist:
-            raise BlogNotFound()
+            raise BlogPostNotFound()
         
         await instance.fetch_related('tags', 'comments')
         return instance

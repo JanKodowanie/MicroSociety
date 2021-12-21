@@ -8,4 +8,4 @@ class Comment(models.Model):
     date_created = fields.DatetimeField(auto_now_add=True)
         
     class Meta:
-        ordering = ["-date_created"]
+        ordering = ["date_created"]

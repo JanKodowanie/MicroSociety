@@ -69,34 +69,34 @@ async def get_posts_by_user_id(
 
 
 @router.get(
-    '/{id}',
+    '/{post_id}',
     response_model = BlogPostGetDetailsSchema,
     status_code=status.HTTP_200_OK
 )
 async def get_blog_post(
-    id: int,
+    post_id: int,
     manager: BlogPostManager = Depends()
 ):
     try:
-        instance = await manager.get(id)
-    except BlogNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=NotFoundResponse().detail)
+        instance = await manager.get(post_id)
+    except BlogPostNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
 
     return instance
 
 
 @router.delete(
-    '/{id}',
+    '/{post_id}',
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_blog_post(
-    id: int, 
+    post_id: int, 
     manager: BlogPostManager = Depends(),
     user: UserDataSchema = Depends(JWTBearer())
 ):
     try:
-        instance = await manager.get(id)
-    except BlogNotFound:
+        instance = await manager.get(post_id)
+    except BlogPostNotFound:
         return
     
     if not IsBlogUser.has_object_permission(instance, user) \
@@ -107,12 +107,12 @@ async def delete_blog_post(
     
     
 @router.put(
-    '/{id}',
+    '/{post_id}',
     response_model = BlogPostGetDetailsSchema,
     status_code=status.HTTP_200_OK
 )
 async def edit_blog_post(
-    id: int,
+    post_id: int,
     content: str = Form(None, max_length=500),
     picture: UploadFile = File(None), 
     delete_picture: bool = Form(False),
@@ -120,9 +120,9 @@ async def edit_blog_post(
     user: UserDataSchema = Depends(JWTBearer())
 ):
     try:
-        instance = await manager.get(id)
-    except BlogNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=NotFoundResponse().detail)
+        instance = await manager.get(post_id)
+    except BlogPostNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
     
     if not IsBlogUser.has_object_permission(instance, user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)

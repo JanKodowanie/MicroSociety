@@ -1,7 +1,7 @@
 
-class BlogNotFound(Exception):
+class BlogPostNotFound(Exception):
     def __init__(self):
-        details = 'Blog not found'
+        details = 'Blog post not found'
         super().__init__(details)
         self.details = details
         

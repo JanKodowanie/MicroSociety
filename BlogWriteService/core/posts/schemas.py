@@ -22,11 +22,7 @@ class TagGetFullSchema(TagGetBasicSchema):
 
 class BlogPostCreateSchema(pydantic.BaseModel):
     content: pydantic.constr(strip_whitespace=True, min_length=1, max_length=500)
-    
-    
-class BlogPostUpdateSchema(BlogPostCreateSchema):
-    pass
-    
+     
   
 class BlogPostGetListSchema(PydanticModel):
     id: int

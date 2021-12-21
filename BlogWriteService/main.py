@@ -8,10 +8,12 @@ from fastapi.staticfiles import StaticFiles
 from common.ms_app import MSApp
 from core.events.event_handler import EventHandler
 from core.posts.router import router as posts_router
+from core.comments.router import router as comments_router
 
 
 app = MSApp()
 app.include_router(posts_router)
+app.include_router(comments_router)
 
 try:        
     os.mkdir(settings.MEDIA_DIR)
