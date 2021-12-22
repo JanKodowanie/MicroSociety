@@ -1,10 +1,12 @@
 from .schemas import *
-from db import get_db
+from db import database
 
 
 class BlogUserCollectionManager:
+    
+    def __init__(self):
+        self.collection = database.blog_users
         
     async def create(self, event: BlogUserCreatedEvent):
-        collection = await get_db().blog_users
         data = BlogUserModel(**event.dict())
-        await collection.insert_one(data.dict())
+        await self.collection.insert_one(data.dict())

@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from settings import logger
 from core.users.schemas import *
-# from core.users.managers import *
+from core.users.managers import *
 
 
 class EventHandler:
@@ -16,10 +16,9 @@ class EventHandler:
         
     @classmethod
     async def _handle_blog_user_created(cls, event: dict):
-        print("HELLO")
-        # try:
-        #     event = BlogUserCreatedEvent(**event)
-        # except ValidationError as e:
-        #     logger.error(e)
+        try:
+            event = BlogUserCreatedEvent(**event)
+        except ValidationError as e:
+            logger.error(e)
             
-        # await BlogUserCollectionManager().create(event)
+        await BlogUserCollectionManager().create(event)
