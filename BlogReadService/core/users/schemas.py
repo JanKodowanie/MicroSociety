@@ -12,6 +12,13 @@ class BlogUserModel(pydantic.BaseModel):
     rank: AccountRank
     picture_url: Optional[str]
     
+    
+class BlogUserUpdateModel(pydantic.BaseModel):
+    username: str
+    gender: AccountGender
+    rank: AccountRank
+    picture_url: Optional[str]
+    
 
 class BlogUserCreatedEvent(pydantic.BaseModel):
     event: str = 'blog_user.created'
