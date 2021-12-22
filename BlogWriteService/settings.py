@@ -33,8 +33,8 @@ Tortoise.init_models(MODEL_PATHS, 'models')
 
 # broker settings
 BROKER_URL = os.getenv('BROKER_URL')
-QUEUE = 'blog_queue'
-EXCHANGE = 'blog_exchange'
+QUEUE = 'blog_write_queue'
+EXCHANGE = 'blog_write_exchange'
 
 BINDINGS = {
     'account_exchange': ('blog_user.deleted',)

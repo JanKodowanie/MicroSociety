@@ -1,6 +1,6 @@
 #!/bin/bash
 
-array=( AccountService BlogService )
+array=( AccountService BlogWriteService )
 
 for i in "${array[@]}"
 do

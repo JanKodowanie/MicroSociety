@@ -38,7 +38,7 @@ QUEUE = 'account_queue'
 EXCHANGE = 'account_exchange'
 
 BINDINGS = {
-    'blog_exchange': ('like.created', 'like.deleted')
+    'blog_write_exchange': ('like.created', 'like.deleted')
 }
 
 
