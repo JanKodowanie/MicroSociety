@@ -1,8 +1,8 @@
 from .schemas import *
 from .models import *
 from common.enums import AccountRole
-from core.accounts.managers import AccountManager
-from core.accounts.exceptions import *
+from core.managers import AccountManager
+from core.exceptions import *
 from tortoise.exceptions import DoesNotExist
 from uuid import UUID
 from typing import List
@@ -42,8 +42,7 @@ class BlogUserManager:
         except CredentialsAlreadyTaken as e:
             raise e
         
-        if data.bio:
-            instance.bio = data.bio
+        instance.bio = data.bio
             
         await instance.save()
         await self.broker.publish_blog_user_updated(instance)

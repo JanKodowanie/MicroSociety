@@ -19,9 +19,9 @@ class AccountCreateSchema(pydantic.BaseModel):
     
 
 class AccountEditSchema(pydantic.BaseModel):
-    username: Optional[pydantic.constr(strip_whitespace=True, min_length=6, max_length=20)]
-    email: Optional[pydantic.EmailStr]
-    gender: Optional[AccountGender]
+    username: pydantic.constr(strip_whitespace=True, min_length=6, max_length=20)
+    email: pydantic.EmailStr
+    gender: AccountGender
     
     _username_is_alphanumeric: classmethod = alphanumeric_validator("username")
     
@@ -46,10 +46,11 @@ class AccountGetProfileSchema(pydantic.BaseModel):
     role: AccountRole
     
     
-class TokenSchema(pydantic.BaseModel):
+class LoginResponse(pydantic.BaseModel):
     access_token: str
     token_type: str
-    data: UserDataSchema
+    exp: datetime
+    user: AccountGetListSchema
     
     
 class PassResetCodeRequestSchema(pydantic.BaseModel):
@@ -59,7 +60,3 @@ class PassResetCodeRequestSchema(pydantic.BaseModel):
 class PasswordResetSchema(pydantic.BaseModel):
     code: UUID
     password: pydantic.constr(strip_whitespace=True, min_length=6, max_length=30)
-    
-
-class PasswordResetSuccessResponse(pydantic.BaseModel):
-    detail: str = "Password reset successfully"

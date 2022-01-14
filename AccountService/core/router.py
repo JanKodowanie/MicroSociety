@@ -1,20 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from .schemas import *
 from .exceptions import *
 from .managers import *
 from .middleware import AuthHandler
+from common.responses import *
 
 
 router = APIRouter(
-    prefix="/account",
-    tags=['Accounts']
+    tags=['General'],
+    responses= {
+        status.HTTP_401_UNAUTHORIZED: NotAuthenticatedResponse().dict(),
+        status.HTTP_403_FORBIDDEN: ForbiddenResponse().dict(),
+        status.HTTP_404_NOT_FOUND: NotFoundResponse().dict()
+    }
 )
 
 
 @router.post(
     '/login',
-    response_model=TokenSchema,
+    response_model=LoginResponse,
     status_code=status.HTTP_201_CREATED
 )
 async def login(
@@ -26,7 +31,7 @@ async def login(
                                                      password=request.password)
     except InvalidCredentials as e:   
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail=e.details)
+                            detail=e.detail)
     return token
 
 
@@ -39,11 +44,11 @@ async def delete_account(
     account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     await manager.delete_account(account)
-    return 
+    return Response(status_code=status.HTTP_204_NO_CONTENT)  
 
 
 @router.post(
-    '/password-reset/code',
+    '/password-reset-code',
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def get_password_reset_code(
@@ -53,15 +58,16 @@ async def get_password_reset_code(
 ):
     try:
         account = await account_manager.get_account_by_email(request.email)
+        await reset_code_manager.create_password_reset_code(account)
     except AccountNotFound:
-        return
+        pass
     
-    await reset_code_manager.create_password_reset_code(account)
+    return Response(status_code=status.HTTP_204_NO_CONTENT) 
     
     
 @router.patch(
-    '/password-reset',
-    response_model=PasswordResetSuccessResponse,
+    '/reset-password',
+    response_model=OkResponse,
     status_code=status.HTTP_200_OK
 )
 async def reset_password(
@@ -72,11 +78,11 @@ async def reset_password(
         code = await reset_code_manager.get_password_reset_code(request.code)
     except PasswordResetCodeNotFound as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=e.details)
+                            detail=e.detail)
     try:
         await reset_code_manager.reset_password(code, request.password)
     except PasswordResetCodeExpired as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=e.details)
+                            detail=e.detail)
     
-    return PasswordResetSuccessResponse()
+    return OkResponse(detail="Hasło zostało zresetowane.")

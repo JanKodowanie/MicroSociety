@@ -1,8 +1,7 @@
 import pydantic
-from pydantic import validator
 from typing import Optional
 from common.enums import *
-from core.accounts.schemas import *
+from core.schemas import *
 from .models import *
 from .enums import *
 
@@ -11,7 +10,7 @@ class BlogUserCreateSchema(AccountCreateSchema):
     pass
 
 
-class BlogUserEditSchema(AccountEditSchema):
+class BlogUserEditSchema(BlogUserCreateSchema):
     bio: Optional[pydantic.constr(strip_whitespace=True, min_length=1, max_length=300)]
     
     

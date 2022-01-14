@@ -1,34 +1,24 @@
 import pydantic
-from typing import Optional
 from common.enums import *
-from core.accounts.schemas import *
+from core.schemas import *
 from core.blog_users.schemas import BlogUserCreateSchema
 from utils.validators import *
 from .models import *
 
 
-class EmployeeAdminCreateSchema(AccountCreateSchema):
+class EmployeeCreateSchema(BlogUserCreateSchema):
     firstname: pydantic.constr(strip_whitespace=True, min_length=1, max_length=30)
     lastname: pydantic.constr(strip_whitespace=True, min_length=1, max_length=30)
     phone_number: pydantic.constr(strip_whitespace=True, min_length=1, max_length=30)
+    role: EmployeeRole
 
     _firstname_is_word: classmethod = alphabetic_validator("firstname")
     _lastname_is_word: classmethod = alphabetic_validator("lastname")
     _phone_number_is_valid: classmethod = phone_number_validator("phone_number")
     
     
-class EmployeeModeratorCreateSchema(BlogUserCreateSchema, EmployeeAdminCreateSchema):
+class EmployeeEditSchema(AccountCreateSchema):
     pass
-    
-    
-class EmployeeEditSchema(pydantic.BaseModel):
-    firstname: Optional[pydantic.constr(strip_whitespace=True, min_length=1, max_length=30)]
-    lastname: Optional[pydantic.constr(strip_whitespace=True, min_length=1, max_length=30)]
-    phone_number: Optional[pydantic.constr(strip_whitespace=True, min_length=1, max_length=30)]
-
-    _firstname_is_word: classmethod = alphabetic_validator("firstname")
-    _lastname_is_word: classmethod = alphabetic_validator("lastname")
-    _phone_number_is_valid: classmethod = phone_number_validator("phone_number")
     
     
 class EmployeeGetListSchema(pydantic.BaseModel):

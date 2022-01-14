@@ -7,11 +7,12 @@ from .exceptions import *
 from .managers import AccountManager
 from .models import Account
 from common.auth.schemas import *
+from common.responses import NotAuthenticatedResponse
 from utils.hash import Hash
 from fastapi.security import OAuth2PasswordBearer
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/account/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 class TokenManager:
@@ -52,7 +53,7 @@ class TokenManager:
 
 class AuthHandler:
     
-    async def authenticate_user(self, email, password) -> TokenSchema:
+    async def authenticate_user(self, email, password) -> LoginResponse:
         try:
             user = await AccountManager().get_account_by_email(email)
         except AccountNotFound:
@@ -62,9 +63,10 @@ class AuthHandler:
             raise InvalidCredentials()
         
         access_token, data = TokenManager().create_token(user)
-        token_type = 'bearer'
+        token_type = 'Bearer'
         
-        return TokenSchema(access_token=access_token, token_type=token_type, data=data)
+        return LoginResponse(access_token=access_token, token_type=token_type, 
+                                exp=data.exp, user=user)
     
     @classmethod
     async def get_user_from_token(cls, token: str = Depends(oauth2_scheme)) -> Account:
@@ -72,6 +74,6 @@ class AuthHandler:
             data = TokenManager().decode_token(token)
             user = await AccountManager().get_account(data.sub)
         except Exception as e:
-            raise HTTPException(401, detail=e.details)
+            raise HTTPException(401, detail=NotAuthenticatedResponse().detail)
         
         return user

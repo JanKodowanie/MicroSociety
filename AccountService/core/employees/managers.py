@@ -3,8 +3,8 @@ from .models import *
 from fastapi import Depends
 from common.enums import AccountRole
 from core.events.event_publisher import EventPublisher
-from core.accounts.managers import AccountManager
-from core.accounts.exceptions import *
+from core.managers import AccountManager
+from core.exceptions import *
 from core.blog_users.managers import BlogUserManager
 from tortoise.exceptions import DoesNotExist
 from uuid import UUID
@@ -19,7 +19,7 @@ class EmployeeManager:
         self.blog_user_manager = blog_user_manager
         self.account_manager = account_manager
     
-    async def create_admin(self, data: EmployeeAdminCreateSchema) -> Employee:
+    async def create_admin(self, data: EmployeeCreateSchema) -> Employee:
         try:
             account = await self.account_manager.register_account(data, AccountRole.ADMINISTRATOR)
         except CredentialsAlreadyTaken as e:
@@ -29,7 +29,7 @@ class EmployeeManager:
         await self.broker.publish_employee_created(employee, data.password)
         return employee
     
-    async def create_moderator(self, data: EmployeeModeratorCreateSchema) -> Employee:
+    async def create_moderator(self, data: EmployeeCreateSchema) -> Employee:
         try:
             blog_user = await self.blog_user_manager.create(data, AccountRole.MODERATOR)
         except CredentialsAlreadyTaken as e:
@@ -48,12 +48,9 @@ class EmployeeManager:
         return instance
     
     async def edit(self, instance: Employee, data: EmployeeEditSchema) -> Employee:
-        if data.firstname:
-            instance.firstname = data.firstname
-        if data.lastname:
-            instance.lastname = data.lastname
-        if data.phone_number:
-            instance.phone_number = data.phone_number
+        instance.firstname = data.firstname
+        instance.lastname = data.lastname
+        instance.phone_number = data.phone_number
             
         await instance.save()
         return instance

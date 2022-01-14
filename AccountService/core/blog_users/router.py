@@ -1,24 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Response
 from .schemas import *
 from .managers import *
-from core.accounts.managers import AccountManager
-from core.accounts.exceptions import *
-from core.accounts.middleware import AuthHandler
+from core.managers import AccountManager
+from core.exceptions import *
+from core.middleware import AuthHandler
 from typing import List
 from uuid import UUID
-from .permissions import *
+from core.permissions import *
 from common.responses import *
 from common.enums import AccountStatus
 
 
 router = APIRouter(
-    prefix="/blog_user",
-    tags=['Blog Users']
+    tags=['Blog user'],
+    responses= {
+        status.HTTP_401_UNAUTHORIZED: NotAuthenticatedResponse().dict(),
+        status.HTTP_403_FORBIDDEN: ForbiddenResponse().dict(),
+        status.HTTP_404_NOT_FOUND: NotFoundResponse().dict()
+    }
 )
 
 
 @router.post(
-    '/register', 
+    '/blog-user', 
     response_model=BlogUserGetDetailsSchema,
     status_code=status.HTTP_201_CREATED
 )
@@ -29,45 +33,17 @@ async def register_blog_user(
     try:
         user = await manager.create(request)
     except CredentialsAlreadyTaken as e:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.details) 
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.detail) 
     
     return user
 
 
 @router.get(
-    '/profiles', 
-    response_model=List[BlogUserGetListSchema],
-    status_code=status.HTTP_200_OK
-)
-async def get_blog_user_profile_list(
-    manager: BlogUserManager = Depends(),
-    params: ProfileListQueryParams = Depends()
-):
-    return await manager.get_list(params)
-
-
-@router.get(
-    '/profiles/{id}', 
-    response_model=BlogUserGetProfileSchema,
-    status_code=status.HTTP_200_OK
-)
-async def get_blog_user_profile(
-    id: UUID,
-    manager: BlogUserManager = Depends()
-):
-    try:
-        user = await manager.get(id)
-    except AccountNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
-    return user
-
-
-@router.get(
-    '/details', 
+    '/blog-user', 
     response_model=BlogUserGetDetailsSchema,
     status_code=status.HTTP_200_OK
 )
-async def get_account_details(
+async def get_current_users_details(
     manager: BlogUserManager = Depends(),
     account: Account = Depends(AuthHandler.get_user_from_token)
 ):
@@ -78,11 +54,11 @@ async def get_account_details(
 
 
 @router.put(
-    '/details', 
+    '/blog-user', 
     response_model=BlogUserGetDetailsSchema,
     status_code=status.HTTP_200_OK
 )
-async def edit_account_data(
+async def edit_current_users_details(
     request: BlogUserEditSchema, 
     manager: BlogUserManager = Depends(),
     account: Account = Depends(AuthHandler.get_user_from_token)
@@ -94,17 +70,17 @@ async def edit_account_data(
     try:
         user = await manager.edit(user, request)
     except CredentialsAlreadyTaken as e:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.details) 
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.detail) 
     
     return user
 
 
-@router.post(
-    '/details/profile_picture',
+@router.patch(
+    '/blog-user/add-picture',
     response_model = FileUrlResponse, 
     status_code=status.HTTP_201_CREATED
 )
-async def create_profile_picture(
+async def create_profile_picture_for_current_user(
     picture: UploadFile = File(...),
     manager: BlogUserManager = Depends(),
     account: Account = Depends(AuthHandler.get_user_from_token)
@@ -119,7 +95,7 @@ async def create_profile_picture(
     
         
 @router.delete(
-    '/details/profile_picture', 
+    '/blog-user/delete-picture',
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_profile_picture(
@@ -131,10 +107,27 @@ async def delete_profile_picture(
     
     user = await manager.get(account.id)
     await manager.delete_profile_picture(user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    '/blog-user/{id}', 
+    response_model=BlogUserGetProfileSchema,
+    status_code=status.HTTP_200_OK
+)
+async def get_blog_user_profile(
+    id: UUID,
+    manager: BlogUserManager = Depends()
+):
+    try:
+        user = await manager.get(id)
+    except AccountNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.detail)
+    return user
 
 
 @router.delete(
-    '/profiles/{id}', 
+    '/blog-user/{id}', 
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_blog_user_account(
@@ -144,17 +137,16 @@ async def delete_blog_user_account(
 ):
     try:
         user = await manager.get_account(id)
-    except AccountNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
+        if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
+        await manager.delete_account(user) 
+    except AccountNotFound:
+        pass
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
     
-    if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
     
-    await manager.delete_account(user) 
-
-
 @router.patch(
-    '/profiles/{id}/ban', 
+    '/blog-user/{id}/ban', 
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def ban_blog_user(
@@ -164,17 +156,17 @@ async def ban_blog_user(
 ):
     try:
         user = await manager.get_account(id)
-    except AccountNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
+        if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
+        await manager.change_users_status(user, AccountStatus.BANNED) 
+    except AccountNotFound:
+        pass
     
-    if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
     
-    await manager.change_users_status(user, AccountStatus.BANNED) 
-
-
+    
 @router.patch(
-    '/profiles/{id}/unban', 
+    '/blog-user/{id}/unban', 
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def unban_blog_user(
@@ -184,10 +176,22 @@ async def unban_blog_user(
 ):
     try:
         user = await manager.get_account(id)
-    except AccountNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.details)
+        if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
+        await manager.change_users_status(user, AccountStatus.ACTIVE)
+    except AccountNotFound:
+        pass
     
-    if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
-    
-    await manager.change_users_status(user, AccountStatus.ACTIVE)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)   
+
+
+@router.get(
+    '/blog-users', 
+    response_model=List[BlogUserGetListSchema],
+    status_code=status.HTTP_200_OK
+)
+async def get_blog_users(
+    manager: BlogUserManager = Depends(),
+    params: ProfileListQueryParams = Depends()
+):
+    return await manager.get_list(params) 

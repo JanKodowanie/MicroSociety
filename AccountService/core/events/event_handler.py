@@ -1,4 +1,4 @@
-from .models import *
+from common.events.models import *
 from settings import logger
 
 

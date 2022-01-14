@@ -31,8 +31,7 @@ class AccountManager:
             error_fields.append('username')
         
         if error_fields:
-            raise CredentialsAlreadyTaken('Credentials already taken',
-                    details=self._compose_credentials_taken_error(error_fields))
+            raise CredentialsAlreadyTaken(detail=self._compose_credentials_taken_error(error_fields))
         
         account = await Account.create(**data_dict, password=hashed_password, role=role)
         return account
@@ -70,26 +69,22 @@ class AccountManager:
         
     async def edit_account(self, account: Account, data: AccountEditSchema) -> Account:
         error_fields = []
-        if data.email and account.email != data.email:
+        if account.email != data.email:
             email_taken = await self._check_if_email_is_taken(data.email)
             if email_taken:
                 error_fields.append('email')
                 
-        if data.username and account.username != data.username:
+        if account.username != data.username:
             username_taken = await self._check_if_username_is_taken(data.username)
             if username_taken:
                 error_fields.append('username')
                 
         if error_fields:
-            raise CredentialsAlreadyTaken('Credentials already taken',
-                    details=self._compose_credentials_taken_error(error_fields))
+            raise CredentialsAlreadyTaken(detail=self._compose_credentials_taken_error(error_fields))
         
-        if data.username:
-            account.username = data.username
-        if data.email:
-            account.email = data.email
-        if data.gender:
-            account.gender = data.gender
+        account.username = data.username
+        account.email = data.email
+        account.gender = data.gender
             
         await account.save()            
         return account
@@ -113,9 +108,9 @@ class AccountManager:
     def _compose_credentials_taken_error(self, fields: List[str]):
         error_msg = []
         if 'email' in fields:
-            error_msg.append('Email already taken')
+            error_msg.append('Założono już konto na podany adres email.')
         if 'username' in fields:
-            error_msg.append('Username already taken')
+            error_msg.append('Istnieje już konto z podaną nazwą użytkownika.')
         
         return self._compose_error_messages(fields, error_msg)
             
