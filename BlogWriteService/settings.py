@@ -14,10 +14,9 @@ logger = logging.getLogger('uvicorn')
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
-    "core.accounts.models",
-    "core.blog_users.models",
-    "core.employees.models",
-    "core.events.models"
+    'core.posts.models',
+    'core.comments.models',
+    'core.events.models'
 )
 
 def create_db_connection(app) -> None:
@@ -34,11 +33,11 @@ Tortoise.init_models(MODEL_PATHS, 'models')
 
 # broker settings
 BROKER_URL = os.getenv('BROKER_URL')
-QUEUE = 'account_queue'
-EXCHANGE = 'account_exchange'
+QUEUE = 'blog_write_queue'
+EXCHANGE = 'blog_write_exchange'
 
 BINDINGS = {
-    'blog_write_exchange': ('like.created', 'like.deleted')
+    'account_exchange': ('blog_user.deleted',)
 }
 
 

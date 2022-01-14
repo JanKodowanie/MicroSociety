@@ -1,21 +1,19 @@
-import os
-import sys
 import uvicorn
 import settings
 import asyncio
+import sys
+import os
+from fastapi import Depends
 from fastapi.staticfiles import StaticFiles
 from common.ms_app import MSApp
-from core.accounts.router import router as accounts_router
-from core.blog_users.router import router as blog_users_router
-from core.employees.router import router as employees_router
 from core.events.event_handler import EventHandler
-from feed_db import feed_db
+from core.posts.router import router as posts_router
+from core.comments.router import router as comments_router
 
 
 app = MSApp()
-app.include_router(accounts_router)
-app.include_router(blog_users_router)
-app.include_router(employees_router)
+app.include_router(posts_router)
+app.include_router(comments_router)
 
 try:        
     os.mkdir(settings.MEDIA_DIR)
@@ -35,7 +33,6 @@ except Exception as e:
 
 @app.on_event('startup')
 async def startup():
-    await feed_db()
     loop = asyncio.get_running_loop()
     await app.broker_client.initialize(loop, EventHandler.handle_events)
     task = loop.create_task(app.broker_client.consume())
@@ -43,4 +40,4 @@ async def startup():
 
 
 if __name__ == "__main__":
-    uvicorn.run('main:app', host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run('main:app', host="0.0.0.0", port=8001, reload=True)
