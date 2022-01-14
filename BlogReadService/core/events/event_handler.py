@@ -1,29 +1,39 @@
 from pydantic import ValidationError
 from settings import logger
+from .schemas import *
 from core.users.schemas import *
 from core.schemas import *
 from core.users.managers import *
 from core.managers import *
+from db import database
 
 
 class EventHandler:
     
+    collection = database.received_events
+    
     @classmethod
     async def handle_events(cls, event: dict, message_id: int, sender: str):
-        type = event.pop('event', None)
+        if not await cls.collection.find_one({"message_id": message_id}):
+            model = ReceivedEventModel(message_id=message_id, domain=sender)
+            await cls.collection.insert_one(model.dict())
+            type = event.pop('event', None)
+            
+            if type == "blog_user.created":
+                await cls._handle_blog_user_created(event)
+            if type == "blog_user.updated":
+                await cls._handle_blog_user_updated(event)
+            if type == "blog_user.deleted":
+                await cls._handle_blog_user_deleted(event)
+            if type == "post.created":
+                await cls._handle_post_created(event)
+            if type == "post.updated":
+                await cls._handle_post_updated(event)
+            if type == "post.deleted":
+                await cls._handle_post_deleted(event)
+        else:
+            logger.info('Event already processed')
         
-        if type == "blog_user.created":
-            await cls._handle_blog_user_created(event)
-        if type == "blog_user.updated":
-            await cls._handle_blog_user_updated(event)
-        if type == "blog_user.deleted":
-            await cls._handle_blog_user_deleted(event)
-        if type == "post.created":
-            await cls._handle_post_created(event)
-        if type == "post.updated":
-            await cls._handle_post_updated(event)
-        if type == "post.deleted":
-            await cls._handle_post_deleted(event)
         
     @classmethod
     async def _handle_blog_user_created(cls, event: dict):

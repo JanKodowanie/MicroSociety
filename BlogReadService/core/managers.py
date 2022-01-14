@@ -8,7 +8,7 @@ from core.users.schemas import BlogUserDeletedEvent, BlogUserUpdatedEvent
 class PostCollectionManager:
     
     def __init__(self):
-        self.collection = database.blog_posts
+        self.collection = database.posts
         self.blog_users = BlogUserCollectionManager()
         
     async def create(self, event: PostCreatedEvent):

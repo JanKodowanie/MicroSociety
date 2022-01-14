@@ -20,3 +20,14 @@ BINDINGS = {
     'blog_write_exchange': ('post.*', 'comment.*'),
     'account_exchange': ('blog_user.*',),
 }
+
+
+# web connectio settings
+FRONTEND_URL = os.getenv('FRONTEND_URL')
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL
+]
+
+CORS_ALLOWED_METHODS = ["*"]
+CORS_ALLOWED_HEADERS = ["*"]
+ALLOWED_HOSTS = ["*"]

@@ -66,7 +66,7 @@ class PostManager:
         
         await self.tag_manager.create_tags_from_post(instance)
         await instance.fetch_related('tags', 'comments')
-        await self.broker.publish_blog_post_created(instance)
+        await self.broker.publish_post_created(instance)
         return instance
     
     async def get(self, id: int) -> Post:
@@ -100,14 +100,14 @@ class PostManager:
             await self.tag_manager.create_tags_from_post(instance)
         
         await instance.fetch_related('tags', 'comments')
-        await self.broker.publish_blog_post_updated(instance)
+        await self.broker.publish_post_updated(instance)
         return instance
     
     async def delete(self, instance: Post):
         await self.tag_manager.decrease_post_tags_popularity(instance)
         id = instance.id
         await instance.delete()
-        await self.broker.publish_blog_post_deleted(id)
+        await self.broker.publish_post_deleted(id)
 
     async def get_list(self, filters: dict = None) -> List[Post]:
         if not filters:
