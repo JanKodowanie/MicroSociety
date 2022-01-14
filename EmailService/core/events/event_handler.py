@@ -1,4 +1,5 @@
-from core.emails.managers import EmailManager
+from core.managers import EmailManager
+from common.events.models import *
 from common.enums import AccountRole
 from pydantic import ValidationError
 from .received import *
@@ -11,19 +12,23 @@ class EventHandler:
     
     @classmethod
     async def handle_events(cls, event: dict, message_id: int, sender: str):
-        type = event.pop('event', None)
-        
-        if type == 'blog_user.created':
-            await cls._handle_blog_user_created(event)
+        if not await ReceivedEvent.exists(message_id=message_id, domain=sender):
+            await ReceivedEvent.create(message_id=message_id, domain=sender)
+            type = event.pop('event', None)
             
-        if type == 'blog_user.deleted':
-            await cls._handle_blog_user_deleted(event)
+            if type == 'blog_user.created':
+                await cls._handle_blog_user_created(event)
             
-        if type == 'employee.created':
-            await cls._handle_employee_created(event)
-            
-        if type == 'account.password_reset':
-            await cls._handle_password_reset(event)
+            if type == 'blog_user.deleted':
+                await cls._handle_blog_user_deleted(event)
+                
+            if type == 'employee.created':
+                await cls._handle_employee_created(event)
+                
+            if type == 'account.password_reset':
+                await cls._handle_password_reset(event)   
+        else:
+            logger.info('Event already processed')
         
     @classmethod
     async def _handle_blog_user_created(cls, event: dict):

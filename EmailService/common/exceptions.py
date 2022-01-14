@@ -1,5 +1,6 @@
 
 class InvalidFileExtension(Exception):
-    def __init__(self, details: str):
-        super().__init__(details)
-        self.details = details
+    def __init__(self, detail: str):
+        self.detail = detail
+        super().__init__(self.detail)
+        

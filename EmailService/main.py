@@ -1,10 +1,32 @@
+import sys
 import uvicorn
 import asyncio
+import settings
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from common.ms_app import MSApp
 from core.events.event_handler import EventHandler
 
 
 app = MSApp()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=settings.CORS_ALLOWED_METHODS,
+    allow_headers=settings.CORS_ALLOWED_HEADERS
+)
+app.add_middleware(
+    TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS
+)
+
+try:
+    settings.create_db_connection(app)
+except Exception as e:
+    settings.logger.error("Couldn't connect to db")
+    settings.logger.error(e)
+    sys.exit(-1)
 
 
 @app.on_event('startup')

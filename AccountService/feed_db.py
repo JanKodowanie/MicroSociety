@@ -1,5 +1,5 @@
 from core.employees.models import Employee
-from core.accounts.models import Account
+from core.models import Account
 from core.blog_users.models import BlogUser
 from common.enums import AccountRole, AccountGender
 from utils.hash import Hash

@@ -19,6 +19,7 @@ class AccountManager:
     async def register_account(self, data: AccountCreateSchema, 
                                role: AccountRole = AccountRole.STANDARD) -> Account:
         data_dict = data.dict()
+        data_dict.pop('role', None)
         hashed_password = self.hash.hash_password(data_dict.pop('password'))    
         
         error_fields = []

@@ -10,7 +10,7 @@ class BlogUserCreateSchema(AccountCreateSchema):
     pass
 
 
-class BlogUserEditSchema(BlogUserCreateSchema):
+class BlogUserEditSchema(AccountEditSchema):
     bio: Optional[pydantic.constr(strip_whitespace=True, min_length=1, max_length=300)]
     
     
