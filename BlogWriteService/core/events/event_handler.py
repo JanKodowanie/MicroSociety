@@ -1,15 +1,14 @@
-from fastapi import Depends
 from settings import logger
 from .received import BlogUserDeleted
-from .models import *
+from common.events.models import *
 from pydantic import ValidationError
-from core.posts.managers import BlogPostManager
+from core.managers import PostManager
 from core.comments.managers import CommentManager
 
 
 class EventHandler:
     
-    post_manager: BlogPostManager = BlogPostManager()
+    post_manager: PostManager = PostManager()
     comment_manager: CommentManager = CommentManager()
     
     @classmethod

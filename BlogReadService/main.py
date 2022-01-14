@@ -2,7 +2,7 @@ import uvicorn
 import asyncio
 from common.ms_app import MSApp
 from core.events.event_handler import EventHandler
-from core.posts.router import router as posts_router
+from core.router import router as posts_router
 
 
 app = MSApp()

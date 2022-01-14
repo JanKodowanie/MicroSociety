@@ -9,7 +9,7 @@ class TagBasicModel(pydantic.BaseModel):
     name: str
 
 
-class BlogPostBasicModel(pydantic.BaseModel):
+class PostBasicModel(pydantic.BaseModel):
     id: int
     creator: BlogUserModel
     content: str 
@@ -18,7 +18,7 @@ class BlogPostBasicModel(pydantic.BaseModel):
     tags: Optional[List[TagBasicModel]]
     
 
-class BlogPostUpdateModel(pydantic.BaseModel):
+class PostUpdateModel(pydantic.BaseModel):
     content: str 
     picture_url: Optional[str]
     tags: Optional[List[TagBasicModel]]
@@ -35,8 +35,8 @@ class PostCreatorUpdateModel(BlogUserUpdateModel):
         }
     
     
-class BlogPostCreatedEvent(pydantic.BaseModel):
-    event: str = 'blog_post.created'
+class PostCreatedEvent(pydantic.BaseModel):
+    event: str = 'post.created'
     id: int
     creator_id: UUID
     content: str 
@@ -45,10 +45,10 @@ class BlogPostCreatedEvent(pydantic.BaseModel):
     tags: Optional[List[TagBasicModel]]
     
     
-class BlogPostUpdatedEvent(BlogPostCreatedEvent):
-    event: str = 'blog_post.updated'
+class PostUpdatedEvent(PostCreatedEvent):
+    event: str = 'post.updated'
     
     
-class BlogPostDeletedEvent(pydantic.BaseModel):
-    event: str = 'blog_post.deleted'
+class PostDeletedEvent(pydantic.BaseModel):
+    event: str = 'post.deleted'
     post_id: int

@@ -20,11 +20,11 @@ class TagGetFullSchema(TagGetBasicSchema):
     popularity: int
     
 
-class BlogPostCreateSchema(pydantic.BaseModel):
+class PostCreateSchema(pydantic.BaseModel):
     content: pydantic.constr(strip_whitespace=True, min_length=1, max_length=500)
      
   
-class BlogPostGetListSchema(PydanticModel):
+class PostGetListSchema(PydanticModel):
     id: int
     creator_id: UUID
     content: str 
@@ -36,8 +36,15 @@ class BlogPostGetListSchema(PydanticModel):
         orm_mode = True
     
     
-class BlogPostGetDetailsSchema(BlogPostGetListSchema):
+class PostGetDetailsSchema(PostGetListSchema):
     comments: Optional[List[CommentGetSchema]]
+    
+    class Config:
+        orm_mode = True
+        
+        
+class PostCreatedResponse(pydantic.BaseModel):
+    id: int
     
     class Config:
         orm_mode = True

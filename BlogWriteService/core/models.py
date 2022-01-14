@@ -10,10 +10,10 @@ class Tag(models.Model):
     name = fields.CharField(max_length=30, pk=True)
     date_created = fields.DatetimeField(auto_now_add=True)
     popularity = fields.IntField(default=0)
-    posts: fields.ManyToManyRelation["BlogPost"]
+    posts: fields.ManyToManyRelation["Post"]
     
     
-class BlogPost(models.Model):
+class Post(models.Model):
     creator_id = fields.UUIDField()
     content = fields.TextField(max_length=500)
     picture_url = fields.CharField(max_length=300, null=True)
@@ -34,7 +34,7 @@ class BlogPost(models.Model):
         return hashtag_list
     
     
-@post_delete(BlogPost)
-async def blog_post_post_delete(sender, instance, using_db) -> None:
+@post_delete(Post)
+async def delete_post_picture(sender, instance, using_db) -> None:
     if instance.picture_path:
         FileManager().delete_file(instance.picture_path)

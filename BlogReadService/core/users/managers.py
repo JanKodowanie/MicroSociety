@@ -1,7 +1,6 @@
 from .schemas import *
 from db import database
 from uuid import UUID
-from settings import logger
 
 
 class BlogUserCollectionManager:

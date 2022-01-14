@@ -39,10 +39,10 @@ class FileManager:
         try:
             ext = _file.filename.split('.')[1]
         except Exception:
-            raise InvalidFileExtension('Uploaded file has no extension')
+            raise InvalidFileExtension('Plik nie posiada rozszerzenia.')
     
         if ext not in extensions:
             raise InvalidFileExtension(
-                'Invalid file extension. Allowed extensions: ' + ', '.join(extensions))
+                'Nieprawidłowe rozszerzenie pliku. Dozwolone rozszerzenia: ' + ', '.join(extensions))
             
         return ext

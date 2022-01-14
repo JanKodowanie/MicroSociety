@@ -2,8 +2,8 @@ from fastapi import Depends
 from .models import *
 from .schemas import *
 from .exceptions import *
-from core.posts.managers import BlogPostManager
-from core.posts.exceptions import BlogPostNotFound
+from core.managers import PostManager
+from core.exceptions import PostNotFound
 from tortoise.exceptions import DoesNotExist
 from core.events.event_publisher import EventPublisher
 
@@ -11,15 +11,15 @@ from core.events.event_publisher import EventPublisher
 
 class CommentManager:
     
-    def __init__(self, blog_post_manager: BlogPostManager = Depends(), 
+    def __init__(self, post_manager: PostManager = Depends(), 
                                         broker: EventPublisher = Depends()):
-        self.blog_post_manager = blog_post_manager
+        self.post_manager = post_manager
         self.broker = broker
     
     async def create(self, creator_id: UUID, content: CommentCreateSchema, post_id: int) -> Comment:
         try:
-            post = await self.blog_post_manager.get(post_id)
-        except BlogPostNotFound as e:
+            post = await self.post_manager.get(post_id)
+        except PostNotFound as e:
             raise e
         
         instance = await Comment.create(creator_id=creator_id, post=post, **content.dict())

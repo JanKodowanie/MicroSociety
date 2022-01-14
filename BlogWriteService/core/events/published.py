@@ -1,18 +1,18 @@
 import pydantic
-from core.posts.schemas import *
+from core.schemas import *
 from core.comments.schemas import *
 
 
-class BlogPostCreated(BlogPostGetListSchema):
-    event: str = 'blog_post.created'
+class PostCreated(PostGetListSchema):
+    event: str = 'post.created'
     
     
-class BlogPostUpdated(BlogPostGetListSchema):
-    event: str = 'blog_post.updated'
+class PostUpdated(PostGetListSchema):
+    event: str = 'post.updated'
     
     
-class BlogPostDeleted(pydantic.BaseModel):
-    event: str = 'blog_post.deleted'
+class PostDeleted(pydantic.BaseModel):
+    event: str = 'post.deleted'
     post_id: str
     
     

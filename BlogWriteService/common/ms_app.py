@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from common.broker.client import BrokerClient
+from .events.broker_client import BrokerClient
 
 
 class MSApp(FastAPI):

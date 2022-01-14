@@ -1,9 +1,9 @@
 from fastapi import Request
 from .published import *
-from .models import *
-from core.posts.models import BlogPost
+from common.events.models import *
+from core.models import Post
 from core.comments.models import Comment
-from common.broker.client import BrokerClient
+from common.events.broker_client import BrokerClient
 from common.enums import *
 
 
@@ -15,22 +15,22 @@ class EventPublisher:
     async def _publish_event(self, body: str, routing_key: str, message_id: str):
         await self.broker.send_message(body, routing_key, 'blog_write', message_id)
         
-    async def publish_blog_post_created(self, instance: BlogPost):
-        message_schema = BlogPostCreated.from_orm(instance)
+    async def publish_post_created(self, instance: Post):
+        message_schema = PostCreated.from_orm(instance)
         body = message_schema.json()
         event = await PublishedEvent.create(name=message_schema.event, body=body)
         
         await self._publish_event(body, event.name, event.id)
         
-    async def publish_blog_post_updated(self, instance: BlogPost):
-        message_schema = BlogPostUpdated.from_orm(instance)
+    async def publish_post_updated(self, instance: Post):
+        message_schema = PostUpdated.from_orm(instance)
         body = message_schema.json()
         event = await PublishedEvent.create(name=message_schema.event, body=body)
         
         await self._publish_event(body, event.name, event.id)
         
-    async def publish_blog_post_deleted(self, post_id: int):
-        message_schema = BlogPostDeleted(post_id=post_id)
+    async def publish_post_deleted(self, post_id: int):
+        message_schema = PostDeleted(post_id=post_id)
         body = message_schema.json()
         event = await PublishedEvent.create(name=message_schema.event, body=body)
         

@@ -21,3 +21,10 @@ class CommentGetSchema(pydantic.BaseModel):
     
     class Config:
         orm_mode = True
+        
+        
+class CommentCreatedResponse(pydantic.BaseModel):
+    id: int
+    
+    class Config:
+        orm_mode = True        
