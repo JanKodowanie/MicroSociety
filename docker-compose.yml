@@ -26,8 +26,6 @@ services:
     build: ./AccountService
     volumes:
       - ./AccountService:/app
-    ports:
-      - "8000:8000"
     depends_on:
       - rabbit
     
@@ -35,8 +33,6 @@ services:
     build: ./BlogWriteService
     volumes:
       - ./BlogWriteService:/app
-    ports:
-      - "8001:8000"
     depends_on:
       - rabbit
   
@@ -44,8 +40,6 @@ services:
     build: ./BlogReadService
     volumes:
       - ./BlogReadService:/app
-    ports:
-      - "8002:8000"
     depends_on:
       - mongodb
       - rabbit
@@ -54,17 +48,19 @@ services:
     build: ./EmailService
     volumes:
       - ./EmailService:/app
-    ports:
-      - "8003:8000"
     depends_on:
       - rabbit
 
-  # postgres:
-  #   image: postgres:latest
-  #   volumes:
-  #     - ./utils/postgres:/docker-entrypoint-initdb.d
-  #     - postgres_data:/var/lib/postgresql/data/
-  #   environment:
-  #     - POSTGRES_MULTIPLE_DATABASES="account_db","blog_write_db","email_db"
-  #     - POSTGRES_USER=msociety
-  #     - POSTGRES_PASSWORD=msociety
+  gateway:
+    image: nginx:latest
+    volumes:
+      - ./utils/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./AccountService/media/profile_pics:/var/microsociety/media/profile_pics
+      - ./BlogWriteService/media/post_pics:/var/microsociety/media/post_pics
+    depends_on:
+      - account_service
+      - blog_write_service
+      - blog_read_service
+      - email_service
+    ports:
+      - "8000:8000"
