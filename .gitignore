@@ -11,6 +11,8 @@ test.db
 sample_app/
 .docker/
 db.sqlite*
+mongo/
+rabbit/
 
 # media files
 */media/

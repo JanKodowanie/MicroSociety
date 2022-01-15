@@ -1,19 +1,8 @@
-version: '3'
+version: "3.9"
 
 services:
-
-  db:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./utils/postgres:/docker-entrypoint-initdb.d
-    environment:
-      - POSTGRES_MULTIPLE_DATABASES="account_db","blog_db"
-      - POSTGRES_USER=msociety
-      - POSTGRES_PASSWORD=msociety
-
-  broker:
+ 
+  rabbit:
     image: rabbitmq:3.8-management-alpine
     environment:
       - RABBITMQ_DEFAULT_USER=msociety
@@ -21,29 +10,61 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-    depends_on:
-      - db
-    
+    volumes:
+      - ./rabbit:/var/lib/rabbitmq
+    logging:
+      driver: none
+
+  mongodb:
+    image : mongo
+    volumes:
+      - ./mongo:/data/db
+    logging:
+      driver: none
+
   account_service:
     build: ./AccountService
+    volumes:
+      - ./AccountService:/app
     ports:
       - "8000:8000"
     depends_on:
-      - db
-      - broker
-
-  blog_service:
-    build: ./BlogService
+      - rabbit
+    
+  blog_write_service:
+    build: ./BlogWriteService
+    volumes:
+      - ./BlogWriteService:/app
     ports:
       - "8001:8000"
     depends_on:
-      - db
-      - broker
-
-  email_service:
-    build: ./EmailService
+      - rabbit
+  
+  blog_read_service:
+    build: ./BlogReadService
+    volumes:
+      - ./BlogReadService:/app
     ports:
       - "8002:8000"
     depends_on:
-      - db
-      - broker
+      - mongodb
+      - rabbit
+    
+  email_service:
+    build: ./EmailService
+    volumes:
+      - ./EmailService:/app
+    ports:
+      - "8003:8000"
+    depends_on:
+      - rabbit
+
+  # postgres:
+  #   image: postgres:latest
+  #   volumes:
+  #     - ./utils/postgres:/docker-entrypoint-initdb.d
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   environment:
+  #     - POSTGRES_MULTIPLE_DATABASES="account_db","blog_write_db","email_db"
+  #     - POSTGRES_USER=msociety
+  #     - POSTGRES_PASSWORD=msociety
