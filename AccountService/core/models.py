@@ -19,7 +19,7 @@ class Account(models.Model):
         ordering = ["-date_joined"]
         
     class PydanticMeta:
-        exclude = ["password", "reset_code", "blog_user", "employee"]
+        exclude = ["password", "reset_code", "blog_user", "employee", "refresh_tokens"]
         
         
 class PasswordResetCode(models.Model):
@@ -27,6 +27,11 @@ class PasswordResetCode(models.Model):
     user = fields.OneToOneField('models.Account', related_name='reset_code')
     exp = fields.DatetimeField(
         default=datetime.now(timezone.utc) + timedelta(hours=24))
+    
+    
+class RefreshToken(models.Model):
+    id = fields.UUIDField(pk=True)
+    user = fields.ForeignKeyField('models.Account', related_name='refresh_tokens') 
     
     
 @pre_delete(Account)

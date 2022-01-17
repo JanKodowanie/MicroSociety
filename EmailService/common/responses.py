@@ -2,7 +2,7 @@ import pydantic
 
 
 class OkResponse(pydantic.BaseModel):
-    detail: str = 'Operacja powiodła się'
+    detail: str = 'Operacja powiodła się.'
 
 
 class NotAuthenticatedResponse(pydantic.BaseModel):

@@ -4,10 +4,15 @@ from pydantic.types import UUID4
 from common.enums import AccountStatus, AccountRole
 
     
-class UserDataSchema(BaseModel):
+class AccessTokenSchema(BaseModel):
     sub: UUID4
-    username: str
     role: AccountRole
     status: AccountStatus
     iat: datetime
     exp: datetime
+    
+    
+class RefreshTokenSchema(BaseModel):
+    sub: UUID4
+    jti: UUID4
+    iat: datetime

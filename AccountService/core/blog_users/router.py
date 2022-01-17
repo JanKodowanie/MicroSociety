@@ -3,7 +3,7 @@ from .schemas import *
 from .managers import *
 from core.managers import AccountManager
 from core.exceptions import *
-from core.middleware import AuthHandler
+from core.auth import AuthHandler
 from typing import List
 from uuid import UUID
 from core.permissions import *

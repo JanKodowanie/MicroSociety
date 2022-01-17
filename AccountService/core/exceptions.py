@@ -6,27 +6,26 @@ class AccountNotFound(Exception):
 
 
 class CredentialsAlreadyTaken(Exception):
-    
     def __init__(self, detail=dict):
         self.detail = detail
         super().__init__('Istnieje już konto z podanym emailem/nazwą użytkownika.')
         
         
-class MalformedAccessToken(Exception):
+class MalformedToken(Exception):
     def __init__(self):
-        self.detail = 'Podano nieprawidłowy token.'
+        self.detail = 'Niepoprawne dane uwierzytelniające.'
         super().__init__(self.detail)
-    
-    
-class AccessTokenExpired(Exception):
+        
+        
+class TokenRevoked(Exception):
     def __init__(self):
-        self.detail = 'Token utracił ważność.'
+        self.detail = 'Aby skorzystać z serwisu, zaloguj się ponownie.'
         super().__init__(self.detail)
         
         
 class InvalidCredentials(Exception):
     def __init__(self):
-        self.detail = "Niepoprawne dane logowania."
+        self.detail = 'Niepoprawne dane logowania.'
         super().__init__(self.detail)
         
         

@@ -46,7 +46,8 @@ class BrokerClient:
             message=pika.Message(body=message.encode(), type=sender, message_id=message_id),
             routing_key=routing_key
         )
-        logger.info(f'Published event {message_id}: {message}')
+        logger.info(f'Opublikowano zdarzenie nr {message_id}:')
+        await self._print_event(json.loads(message))
     
     async def _process_incoming_message(self, message: pika.Message):
         """Processing incoming message from RabbitMQ"""
@@ -55,5 +56,10 @@ class BrokerClient:
         sender = message.type
         body = json.loads(message.body)
         if body:
-            logger.info(f'Received event no. {message_id} from {sender}: {str(body)}')
+            logger.info(f'Otrzymano zdarzenie nr {message_id} z domeny {sender}:')
+            await self._print_event(body)
             await self.callable(body, message_id, sender)
+            
+    async def _print_event(self, body: dict):
+        for k,v in body.items():
+            logger.info(f'\t{k}: {v}')

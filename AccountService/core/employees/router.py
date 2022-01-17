@@ -4,7 +4,7 @@ from .managers import *
 from core.permissions import *
 from core.managers import AccountManager
 from core.exceptions import *
-from core.middleware import AuthHandler
+from core.auth import AuthHandler
 from typing import List
 from uuid import UUID
 from common.responses import *

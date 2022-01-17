@@ -18,6 +18,7 @@ MODEL_PATHS = (
     "core.blog_users.models",
     "core.employees.models",
     "common.events.models",
+    "common.auth.models",
     "aerich.models"
 )
 
@@ -53,7 +54,7 @@ BINDINGS = {
 # auth settings
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 600
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 # media settings

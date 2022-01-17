@@ -17,6 +17,7 @@ MODEL_PATHS = (
     "core.models",
     "core.comments.models",
     "common.events.models",
+    "common.auth.models",
     "aerich.models"
 )
 
@@ -45,7 +46,7 @@ QUEUE = 'blog_write_queue'
 EXCHANGE = 'blog_write_exchange'
 
 BINDINGS = {
-    'account_exchange': ('blog_user.deleted',)
+    'account_exchange': ('blog_user.deleted', 'account.full_logout')
 }
 
 

@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from .schemas import *
 from .exceptions import *
 from .managers import *
-from .middleware import AuthHandler
+from .auth import AuthHandler
 from common.responses import *
 
 
@@ -23,16 +23,38 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED
 )
 async def login(
-    request: OAuth2PasswordRequestForm = Depends(), 
-    auth_handler: AuthHandler = Depends()
+    request: OAuth2PasswordRequestForm = Depends()
 ):
     try:
-        token = await auth_handler.authenticate_user(email=request.username, 
+        response = await AuthHandler.authenticate_user(email=request.username, 
                                                      password=request.password)
     except InvalidCredentials as e:   
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=e.detail)
-    return token
+    return response
+
+
+@router.post(
+    '/refresh-token',
+    response_model=LoginResponse,
+    status_code=status.HTTP_201_CREATED
+)
+async def refresh_access_token(
+    response: LoginResponse = Depends(AuthHandler.refresh_access_token)
+):
+    return response
+
+
+@router.post(
+    '/full-logout',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def logout_on_all_devices(
+    account: Account = Depends(AuthHandler.get_user_from_token),
+    auth: AuthHandler = Depends()
+):
+    await auth.perform_full_logout(account)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)  
 
 
 @router.delete(

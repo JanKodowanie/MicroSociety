@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from uuid import UUID
 from common.enums import *
 from typing import Optional
+from datetime import datetime
 
         
 class PasswordResetCodeCreated(BaseModel):
@@ -9,6 +10,12 @@ class PasswordResetCodeCreated(BaseModel):
     username: str
     email: str
     code: UUID
+    
+    
+class FullLogout(BaseModel):
+    event: str = 'account.full_logout'
+    user_id: UUID
+    logout_date: datetime
     
     
 class BlogUserCreated(BaseModel):

@@ -35,6 +35,9 @@ class AccountGetListSchema(pydantic.BaseModel):
     gender: AccountGender
     role: AccountRole
     status: AccountStatus
+    
+    class Config:
+        orm_mode = True
         
         
 class AccountGetProfileSchema(pydantic.BaseModel):
@@ -45,9 +48,13 @@ class AccountGetProfileSchema(pydantic.BaseModel):
     status: AccountStatus
     role: AccountRole
     
+    class Config:
+        orm_mode = True
+    
     
 class LoginResponse(pydantic.BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
     exp: datetime
     user: AccountGetListSchema

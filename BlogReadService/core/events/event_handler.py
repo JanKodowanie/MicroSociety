@@ -15,9 +15,9 @@ class EventHandler:
     @classmethod
     async def handle_events(cls, event: dict, message_id: int, sender: str):
         if not await cls.collection.find_one({"message_id": message_id}):
-            model = ReceivedEventModel(message_id=message_id, domain=sender)
-            await cls.collection.insert_one(model.dict())
             type = event.pop('event', None)
+            model = ReceivedEventModel(message_id=message_id, domain=sender, name=type)
+            await cls.collection.insert_one(model.dict())
             
             if type == "blog_user.created":
                 await cls._handle_blog_user_created(event)
@@ -32,7 +32,7 @@ class EventHandler:
             if type == "post.deleted":
                 await cls._handle_post_deleted(event)
         else:
-            logger.info('Event already processed')
+            logger.info('To zdarzenie zostało już obsłużone.')
         
         
     @classmethod

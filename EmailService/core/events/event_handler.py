@@ -13,8 +13,8 @@ class EventHandler:
     @classmethod
     async def handle_events(cls, event: dict, message_id: int, sender: str):
         if not await ReceivedEvent.exists(message_id=message_id, domain=sender):
-            await ReceivedEvent.create(message_id=message_id, domain=sender)
             type = event.pop('event', None)
+            await ReceivedEvent.create(message_id=message_id, domain=sender, name=type)
             
             if type == 'blog_user.created':
                 await cls._handle_blog_user_created(event)
@@ -28,7 +28,7 @@ class EventHandler:
             if type == 'account.password_reset':
                 await cls._handle_password_reset(event)   
         else:
-            logger.info('Event already processed')
+            logger.info('To zdarzenie zostało już obsłużone.')
         
     @classmethod
     async def _handle_blog_user_created(cls, event: dict):

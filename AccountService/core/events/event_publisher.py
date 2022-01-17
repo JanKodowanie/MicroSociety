@@ -19,8 +19,7 @@ class EventPublisher:
     async def publish_blog_user_deleted(self, id: UUID, username: str, email: str):
         message_schema = BlogUserDeleted(id=str(id), username=username, email=email)
         body = message_schema.json()
-        event = await PublishedEvent.create(name=message_schema.event, body=body)
-        
+        event = await PublishedEvent.create(name=message_schema.event)
         await self._publish_event(body, event.name, event.id)
         
     async def publish_blog_user_updated(self, instance: BlogUser):
@@ -34,8 +33,7 @@ class EventPublisher:
             picture_url = instance.picture_url
         )
         body = message_schema.json()
-        event = await PublishedEvent.create(name=message_schema.event, body=body)
-        
+        event = await PublishedEvent.create(name=message_schema.event)
         await self._publish_event(body, event.name, event.id)
         
     async def publish_blog_user_created(self, instance: BlogUser):
@@ -49,8 +47,7 @@ class EventPublisher:
             picture_url = instance.picture_url
         )
         body = message_schema.json()
-        event = await PublishedEvent.create(name=message_schema.event, body=body)
-        
+        event = await PublishedEvent.create(name=message_schema.event)
         await self._publish_event(body, event.name, event.id)
         
     async def publish_employee_created(self, instance: Employee, password: str):
@@ -62,8 +59,7 @@ class EventPublisher:
             role = instance.account.role
         )
         body = message_schema.json()
-        event = await PublishedEvent.create(name=message_schema.event, body=body)
-        
+        event = await PublishedEvent.create(name=message_schema.event)
         await self._publish_event(body, event.name, event.id)
               
     async def publish_password_reset_code_created(self, code: UUID, username: str, 
@@ -71,6 +67,11 @@ class EventPublisher:
         
         message_schema = PasswordResetCodeCreated(code=str(code), username=username, email=email)
         body = message_schema.json()
-        event = await PublishedEvent.create(name=message_schema.event, body=body)
+        event = await PublishedEvent.create(name=message_schema.event)
+        await self._publish_event(body, event.name, event.id)
         
+    async def publish_full_logout(self, user_id: UUID, logout_date: datetime):
+        message_schema = FullLogout(user_id=user_id, logout_date=logout_date)
+        body = message_schema.json()
+        event = await PublishedEvent.create(name=message_schema.event)
         await self._publish_event(body, event.name, event.id)

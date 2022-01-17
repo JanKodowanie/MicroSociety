@@ -37,16 +37,6 @@ def create_db_connection(app) -> None:
 Tortoise.init_models(MODEL_PATHS, 'models')
 
 
-# broker settings
-BROKER_URL = os.getenv('BROKER_URL')
-QUEUE = 'account_queue'
-EXCHANGE = 'account_exchange'
-
-BINDINGS = {
-    'blog_write_exchange': ('like.created', 'like.deleted')
-}
-
-
 # sendgrid settings
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 MAIN_EMAIL_TEMPLATE = os.getenv('MAIN_EMAIL_TEMPLATE')
@@ -62,9 +52,10 @@ EXCHANGE = 'email_exchange'
 
 BINDINGS = {
     'account_exchange': 
-        ('account.*', 
-         'blog_user.*',
-         'employee.*')
+        ('account.password_reset', 
+         'blog_user.created',
+         'blog_user.deleted',
+         'employee.created')
 }
 
 

@@ -1,8 +1,9 @@
+import settings
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt
-from .schemas import UserDataSchema
-import settings
+from .schemas import AccessTokenSchema
+from common.auth.models import FullLogoutEvent
 
 
 class JWTBearer(HTTPBearer):
@@ -13,27 +14,31 @@ class JWTBearer(HTTPBearer):
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         
         if credentials:
-            if not credentials.scheme == "Bearer":
-                raise HTTPException(401, detail="Could not authenticate user",
+            if credentials.scheme != "Bearer":
+                raise HTTPException(401, detail="Niepoprawne dane uwierzytelniające.",
                             headers={'WWW-Authenticate': 'Bearer'})
              
-            token_data = self.decode_token(credentials.credentials)
+            token_data = await self.decode_token(credentials.credentials)
                 
             if not token_data:
-                raise HTTPException(401, detail="Could not authenticate user",
+                raise HTTPException(401, detail="Niepoprawne dane uwierzytelniające.",
                             headers={'WWW-Authenticate': 'Bearer'})
-            
+                
+            if await FullLogoutEvent.exists(user_id=token_data.sub, logout_date__gte=token_data.iat):
+                raise HTTPException(401, detail="Aby skorzystać z serwisu, zaloguj się ponownie.",
+                            headers={'WWW-Authenticate': 'Bearer'})
+                
             return token_data
         else:
-            raise HTTPException(401, detail="Could not authenticate user",
+            raise HTTPException(401, detail="Niepodano danych uwierzytelniających.",
                             headers={'WWW-Authenticate': 'Bearer'})
 
-    def decode_token(self, token: str) -> UserDataSchema:
+    async def decode_token(self, token: str) -> AccessTokenSchema:
         try:
             '''important: it also checks if signature is expired'''
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-            token_data = UserDataSchema(**payload)
-        except Exception as e:
+            token_data = AccessTokenSchema(**payload)
+        except Exception:
             token_data = None
 
         return token_data
