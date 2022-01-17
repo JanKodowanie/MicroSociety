@@ -46,7 +46,7 @@ QUEUE = 'blog_write_queue'
 EXCHANGE = 'blog_write_exchange'
 
 BINDINGS = {
-    'account_exchange': ('blog_user.deleted', 'account.full_logout')
+    'account_exchange': ('blog_user.deleted', 'account.full_logout'),
 }
 
 

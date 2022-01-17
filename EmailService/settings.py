@@ -55,7 +55,7 @@ BINDINGS = {
         ('account.password_reset', 
          'blog_user.created',
          'blog_user.deleted',
-         'employee.created')
+         'employee.created'),
 }
 
 
