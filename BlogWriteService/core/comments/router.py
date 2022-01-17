@@ -5,7 +5,7 @@ from .exceptions import *
 from core.exceptions import PostNotFound
 from core.permissions import *
 from common.auth.jwt import JWTBearer
-from common.auth.schemas import UserDataSchema
+from common.auth.schemas import AccessTokenSchema
 from common.responses import *
 
 
@@ -28,7 +28,7 @@ async def create_comment(
     post_id: int,
     request: CommentCreateSchema,
     manager: CommentManager = Depends(),
-    user: UserDataSchema = Depends(JWTBearer())
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
     if not IsBlogUser.has_permission(user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
@@ -49,7 +49,7 @@ async def edit_comment(
     comment_id: int, 
     request: CommentUpdateSchema,
     manager: CommentManager = Depends(),
-    user: UserDataSchema = Depends(JWTBearer())
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
     try:
         instance = await manager.get(comment_id)
@@ -69,7 +69,7 @@ async def edit_comment(
 async def delete_comment(
     comment_id: int, 
     manager: CommentManager = Depends(),
-    user: UserDataSchema = Depends(JWTBearer())
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
     try:
         instance = await manager.get(comment_id)

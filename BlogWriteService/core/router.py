@@ -7,7 +7,7 @@ from core.exceptions import *
 from core.permissions import *
 from typing import List
 from common.auth.jwt import JWTBearer
-from common.auth.schemas import UserDataSchema
+from common.auth.schemas import AccessTokenSchema
 from common.responses import *
 
 
@@ -30,7 +30,7 @@ async def create_blog_post(
     content: str = Form(..., max_length=500),
     picture: UploadFile = File(None), 
     manager: PostManager = Depends(),
-    user: UserDataSchema = Depends(JWTBearer())
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
     if not IsBlogUser.has_permission(user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
@@ -51,7 +51,7 @@ async def create_blog_post(
 async def delete_blog_post(
     post_id: int, 
     manager: PostManager = Depends(),
-    user: UserDataSchema = Depends(JWTBearer())
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
     try:
         instance = await manager.get(post_id)
@@ -75,7 +75,7 @@ async def edit_blog_post(
     picture: UploadFile = File(None), 
     delete_picture: bool = Form(False),
     manager: PostManager = Depends(),
-    user: UserDataSchema = Depends(JWTBearer())
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
     try:
         instance = await manager.get(post_id)
