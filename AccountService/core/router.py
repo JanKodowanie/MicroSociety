@@ -94,7 +94,8 @@ async def get_password_reset_code(
 )
 async def reset_password(
     request: PasswordResetSchema,
-    reset_code_manager: PasswordResetCodeManager = Depends()
+    reset_code_manager: PasswordResetCodeManager = Depends(),
+    auth: AuthHandler = Depends()
 ):
     try:
         code = await reset_code_manager.get_password_reset_code(request.code)
@@ -106,5 +107,6 @@ async def reset_password(
     except PasswordResetCodeExpired as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=e.detail)
-    
+        
+    await auth.perform_full_logout(code.user)
     return OkResponse(detail="Hasło zostało zresetowane.")

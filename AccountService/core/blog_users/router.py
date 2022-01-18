@@ -152,13 +152,15 @@ async def delete_blog_user_account(
 async def ban_blog_user(
     id: UUID, 
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token)
+    account: Account = Depends(AuthHandler.get_user_from_token),
+    auth: AuthHandler = Depends()
 ):
     try:
         user = await manager.get_account(id)
         if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
-        await manager.change_users_status(user, AccountStatus.BANNED) 
+        await manager.change_users_status(user, AccountStatus.BANNED)
+        await auth.perform_full_logout(user) 
     except AccountNotFound:
         pass
     
@@ -172,13 +174,15 @@ async def ban_blog_user(
 async def unban_blog_user(
     id: UUID, 
     manager: AccountManager = Depends(),
-    account: Account = Depends(AuthHandler.get_user_from_token)
+    account: Account = Depends(AuthHandler.get_user_from_token),
+    auth: AuthHandler = Depends()
 ):
     try:
         user = await manager.get_account(id)
         if not IsModerator.has_permission(account) or not IsModerator.has_object_permission(user, account):
             raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
         await manager.change_users_status(user, AccountStatus.ACTIVE)
+        await auth.perform_full_logout(user) 
     except AccountNotFound:
         pass
     
