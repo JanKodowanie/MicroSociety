@@ -1,30 +1,54 @@
 import pydantic
+import pymongo
 from core.users.schemas import BlogUserModel, BlogUserUpdateModel
-from uuid import UUID
 from datetime import datetime
 from typing import Optional, List
+from uuid import UUID
+from .enums import *
 
 
-class TagBasicModel(pydantic.BaseModel):
-    name: str
-
-
-class PostBasicModel(pydantic.BaseModel):
+class CommentModel(pydantic.BaseModel):
     id: int
+    post_id: int
+    content: str
     creator: BlogUserModel
-    content: str 
-    picture_url: Optional[str]
     date_created: datetime
-    tags: Optional[List[TagBasicModel]]
     
+    
+class CommentUpdateModel(pydantic.BaseModel):
+    content: str
+    
+    
+class CommentGetSchema(pydantic.BaseModel):
+    id: int
+    content: str
+    creator: BlogUserModel
+    date_created: datetime
+
 
 class PostUpdateModel(pydantic.BaseModel):
     content: str 
     picture_url: Optional[str]
-    tags: Optional[List[TagBasicModel]]
+    tag_list: Optional[List[str]] = []
+
+
+class PostModel(PostUpdateModel):
+    id: int
+    creator: BlogUserModel
+    date_created: datetime
+    like_list: Optional[List[UUID]] = []
+    like_count: int = 0
+
+    
+class PostGetListSchema(PostModel):
+    pass
+
+
+class PostGetDetailsSchema(PostGetListSchema):
+    comments: Optional[List[CommentGetSchema]] = []
     
     
-class PostCreatorUpdateModel(BlogUserUpdateModel):
+class CreatorUpdateModel(BlogUserUpdateModel):
     
     def dict(self):
         return {
@@ -33,22 +57,33 @@ class PostCreatorUpdateModel(BlogUserUpdateModel):
             "creator.rank": self.rank,
             "creator.picture_url": self.picture_url
         }
+        
+
+class TagModel(pydantic.BaseModel):
+    name: str
+    popularity: int = 1
     
     
-class PostCreatedEvent(pydantic.BaseModel):
-    event: str = 'post.created'
-    id: int
-    creator_id: UUID
-    content: str 
-    picture_url: Optional[str]
-    date_created: datetime
-    tags: Optional[List[TagBasicModel]]
+class TagGetSchema(TagModel):
+    pass
     
     
-class PostUpdatedEvent(PostCreatedEvent):
-    event: str = 'post.updated'
+class PostListQueryParams(pydantic.BaseModel):
+    tag: Optional[str]
+    creator_id: Optional[UUID]
+    ordering: Optional[PostListOrdering] = PostListOrdering.DATE_CREATED_DESCENDING
     
-    
-class PostDeletedEvent(pydantic.BaseModel):
-    event: str = 'post.deleted'
-    post_id: int
+    def dict(self):
+        filters_dict = {}
+        if self.tag and self.creator_id:
+            filters_dict = {"$and": [{'tag_list': self.tag}, {"creator.id": self.creator_id}]}
+        elif self.tag:
+            filters_dict = {'tag_list': self.tag}
+        elif self.creator_id:
+            filters_dict = {"creator.id": self.creator_id}
+            
+        if self.ordering == PostListOrdering.DATE_CREATED_DESCENDING:
+            filters_dict["ordering"] = ("date_created", pymongo.DESCENDING)
+        elif self.ordering == PostListOrdering.LIKE_COUNT_DESCENDING:
+            filters_dict["ordering"] = ("like_count", pymongo.DESCENDING)
+        return filters_dict

@@ -30,7 +30,7 @@ class EventPublisher:
         await self._publish_event(body, event.name, event.id)
         
     async def publish_post_deleted(self, post_id: int):
-        message_schema = PostDeleted(post_id=post_id)
+        message_schema = PostDeleted(id=post_id)
         body = message_schema.json()
         event = await PublishedEvent.create(name=message_schema.event)
         
@@ -51,7 +51,21 @@ class EventPublisher:
         await self._publish_event(body, event.name, event.id)
         
     async def publish_comment_deleted(self, post_id: int, comment_id: int):
-        message_schema = CommentDeleted(post_id=post_id, comment_id=comment_id)
+        message_schema = CommentDeleted(post_id=post_id, id=comment_id)
+        body = message_schema.json()
+        event = await PublishedEvent.create(name=message_schema.event)
+        
+        await self._publish_event(body, event.name, event.id)
+        
+    async def publish_like_created(self, creator_id: UUID, post_creator_id: UUID, post_id: int):
+        message_schema = LikeCreated(creator_id=creator_id, post_creator_id=post_creator_id, post_id=post_id)
+        body = message_schema.json()
+        event = await PublishedEvent.create(name=message_schema.event)
+        
+        await self._publish_event(body, event.name, event.id)
+        
+    async def publish_like_deleted(self, creator_id: UUID, post_creator_id: UUID, post_id: int):
+        message_schema = LikeDeleted(creator_id=creator_id, post_creator_id=post_creator_id, post_id=post_id)
         body = message_schema.json()
         event = await PublishedEvent.create(name=message_schema.event)
         

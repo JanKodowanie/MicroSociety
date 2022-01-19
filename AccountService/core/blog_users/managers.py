@@ -66,10 +66,34 @@ class BlogUserManager:
         await self.broker.publish_blog_user_updated(instance)
         return url
         
-    async def delete_profile_picture(self, instance: BlogUser) -> None:
+    async def delete_profile_picture(self, instance: BlogUser):
         if instance.picture_path:
             FileManager().delete_file(instance.picture_path)
         instance.picture_path = None
         instance.picture_url = None
         await instance.save()
         await self.broker.publish_blog_user_updated(instance)
+        
+    async def increase_users_points(self, id: UUID):
+        try:
+            instance = await BlogUser.get(account__id=id)
+            instance.points += 1
+            if instance.points >= 5 and instance.points < 10:
+                instance.rank = AccountRank.RANK_2
+            if instance.points >= 10:
+                instance.rank = AccountRank.RANK_3
+            await instance.save()
+        except DoesNotExist:
+            pass
+        
+    async def decrease_users_points(self, id: UUID):
+        try:
+            instance = await BlogUser.get(account__id=id)
+            instance.points -= 1
+            if instance.points < 5:
+                instance.rank = AccountRank.RANK_1
+            if instance.points >= 5 and instance.points < 10:
+                instance.rank = AccountRank.RANK_2
+            await instance.save()
+        except DoesNotExist:
+            pass

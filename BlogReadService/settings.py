@@ -17,7 +17,7 @@ QUEUE = 'blog_read_queue'
 EXCHANGE = 'blog_read_exchange'
 
 BINDINGS = {
-    'blog_write_exchange': ('post.*', 'comment.*'),
+    'blog_write_exchange': ('post.*', 'comment.*', 'like.*'),
     'account_exchange': ('blog_user.*',),
 }
 

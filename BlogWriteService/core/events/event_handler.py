@@ -33,6 +33,7 @@ class EventHandler:
             logger.error(e)
          
         await cls.post_manager.bulk_delete({'creator_id': data.id})
+        await cls.post_manager.delete_users_likes(data.id)
         await cls.comment_manager.bulk_delete({'creator_id': data.id})
         
     @classmethod

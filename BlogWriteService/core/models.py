@@ -22,7 +22,8 @@ class Post(models.Model):
     tags: fields.ManyToManyRelation["Tag"] \
         = fields.ManyToManyField(model_name='models.Tag', related_name='posts',
                     null=True)
-    comments: fields.ManyToManyRelation["Comment"] 
+    comments: fields.ManyToManyRelation["Comment"]
+    likes: fields.ManyToManyRelation["Like"]  
         
     class Meta:
         ordering = ["-date_created"]
@@ -32,6 +33,11 @@ class Post(models.Model):
         hashtag_list = re.findall(regex, self.content)
         
         return hashtag_list
+    
+    
+class Like(models.Model):
+    creator_id = fields.UUIDField()
+    post = fields.ForeignKeyField(model_name="models.Post", related_name='likes')
     
     
 @post_delete(Post)

@@ -37,7 +37,7 @@ class TagManager:
         except DoesNotExist:
             raise TagNotFound()
         await tag.fetch_related('posts')
-        return await tag.posts.all().prefetch_related('tags')
+        return await tag.posts.all().prefetch_related('tags', 'likes')
 
 
 class PostManager:
@@ -55,7 +55,7 @@ class PostManager:
                 FileManager().validate_file(picture, ['jpg', 'jpeg', 'png'])
             except Exception as e:
                 error = {'picture': e.detail}
-                raise InvalidBlogPostData('Uploaded file is not a valid picture', detail=error)   
+                raise InvalidBlogPostData('Załączony plik nie jest zdjęciem.', detail=error)   
                 
         instance = await Post.create(creator_id=creator_id, **data)
         if picture:
@@ -65,7 +65,7 @@ class PostManager:
             await instance.save()
         
         await self.tag_manager.create_tags_from_post(instance)
-        await instance.fetch_related('tags', 'comments')
+        await instance.fetch_related('tags', 'likes', 'comments')
         await self.broker.publish_post_created(instance)
         return instance
     
@@ -75,7 +75,7 @@ class PostManager:
         except DoesNotExist:
             raise PostNotFound()
         
-        await instance.fetch_related('tags', 'comments')
+        await instance.fetch_related('tags', 'likes', 'comments')
         return instance
 
     async def edit(self, instance: Post, 
@@ -88,7 +88,7 @@ class PostManager:
                 await instance.save()
             except Exception as e:
                 error = {'picture': e.detail}
-                raise InvalidBlogPostData('Uploaded file is not a valid picture', detail=error)
+                raise InvalidBlogPostData('Załączony plik nie jest zdjęciem.', detail=error)
         elif delete_picture:
             await self.delete_picture(instance)
             
@@ -99,7 +99,7 @@ class PostManager:
             await instance.save()
             await self.tag_manager.create_tags_from_post(instance)
         
-        await instance.fetch_related('tags', 'comments')
+        await instance.fetch_related('tags', 'likes', 'comments')
         await self.broker.publish_post_updated(instance)
         return instance
     
@@ -111,9 +111,9 @@ class PostManager:
 
     async def get_list(self, filters: dict = None) -> List[Post]:
         if not filters:
-            posts = await Post.all().prefetch_related('tags')
+            posts = await Post.all().prefetch_related('tags', 'likes')
         else:
-            posts = await Post.filter(**filters).prefetch_related('tags')
+            posts = await Post.filter(**filters).prefetch_related('tags', 'likes')
         return posts
     
     async def bulk_delete(self, filters: dict = None):
@@ -128,3 +128,24 @@ class PostManager:
         instance.picture_path = None
         instance.picture_url = None
         await instance.save()
+        
+    async def create_like(self, creator_id: UUID, instance: Post):
+        if creator_id == instance.creator_id:
+            raise LikeCreationAttemptByCreator()
+        if await Like.filter(creator_id=creator_id, post=instance).exists():
+            raise LikeAlreadyCreated()
+        await Like.create(creator_id=creator_id, post=instance)
+        await self.broker.publish_like_created(creator_id=creator_id, 
+                                    post_creator_id=instance.creator_id, post_id=instance.id)
+        
+    async def delete_like(self, creator_id: UUID, instance: Post):
+        try:
+            like = await Like.get(creator_id=creator_id, post=instance)
+            await like.delete()
+            await self.broker.publish_like_deleted(creator_id=creator_id, 
+                                    post_creator_id=instance.creator_id, post_id=instance.id)
+        except DoesNotExist:
+            pass
+        
+    async def delete_users_likes(self, creator_id: UUID):
+        await Like.filter(creator_id=creator_id).delete()

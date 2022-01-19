@@ -110,6 +110,45 @@ async def get_blog_post(
     return instance
 
 
+@router.post(
+    '/post/{post_id}/like',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def create_post_like(
+    post_id: int,
+    manager: PostManager = Depends(),
+    user: AccessTokenSchema = Depends(JWTBearer())
+):
+    try:
+        instance = await manager.get(post_id)
+    except PostNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.detail)
+    try:
+        await manager.create_like(user.sub, instance)
+    except Exception as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=e.detail)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT) 
+
+
+@router.delete(
+    '/post/{post_id}/like',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_post_like(
+    post_id: int,
+    manager: PostManager = Depends(),
+    user: AccessTokenSchema = Depends(JWTBearer())
+):
+    try:
+        instance = await manager.get(post_id)
+    except PostNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.detail)
+    
+    await manager.delete_like(user.sub, instance)
+    return Response(status_code=status.HTTP_204_NO_CONTENT) 
+
+
 @router.get(
     '/posts',
     response_model=List[PostGetListSchema]
