@@ -1,6 +1,5 @@
 from tortoise import fields, models
 from typing import List
-from core.comments.models import Comment
 from tortoise.signals import post_delete
 from common.file_manager import FileManager
 import re
@@ -33,6 +32,16 @@ class Post(models.Model):
         hashtag_list = re.findall(regex, self.content)
         
         return hashtag_list
+    
+    
+class Comment(models.Model):
+    creator_id = fields.UUIDField()
+    post = fields.ForeignKeyField(model_name="models.Post", related_name="comments")
+    content = fields.TextField(max_length=300)
+    date_created = fields.DatetimeField(auto_now_add=True)
+        
+    class Meta:
+        ordering = ["date_created"]
     
     
 class Like(models.Model):

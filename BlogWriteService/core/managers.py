@@ -5,6 +5,8 @@ from fastapi import Depends, UploadFile
 from tortoise.exceptions import DoesNotExist
 from common.file_manager import FileManager
 from core.events.event_publisher import EventPublisher
+from typing import Optional
+from uuid import UUID
 
 
 class TagManager:
@@ -27,17 +29,6 @@ class TagManager:
                 await tag.save()
             else:
                 await tag.delete()
-    
-    async def get_tag_list(self) -> List[Tag]:
-        return await Tag.all().order_by('-popularity')
-    
-    async def get_posts_in_tag(self, tag_name: str) -> List[Post]:
-        try:
-            tag = await Tag.get(name=tag_name)
-        except DoesNotExist:
-            raise TagNotFound()
-        await tag.fetch_related('posts')
-        return await tag.posts.all().prefetch_related('tags', 'likes')
 
 
 class PostManager:
@@ -109,13 +100,6 @@ class PostManager:
         await instance.delete()
         await self.broker.publish_post_deleted(id)
 
-    async def get_list(self, filters: dict = None) -> List[Post]:
-        if not filters:
-            posts = await Post.all().prefetch_related('tags', 'likes')
-        else:
-            posts = await Post.filter(**filters).prefetch_related('tags', 'likes')
-        return posts
-    
     async def bulk_delete(self, filters: dict = None):
         posts = await Post.filter(**filters).prefetch_related('tags')
         for post in posts:
@@ -149,3 +133,46 @@ class PostManager:
         
     async def delete_users_likes(self, creator_id: UUID):
         await Like.filter(creator_id=creator_id).delete()
+        
+        
+class CommentManager:
+    
+    def __init__(self, post_manager: PostManager = Depends(), 
+                                        broker: EventPublisher = Depends()):
+        self.post_manager = post_manager
+        self.broker = broker
+    
+    async def create(self, creator_id: UUID, content: CommentCreateSchema, post_id: int) -> Comment:
+        try:
+            post = await self.post_manager.get(post_id)
+        except PostNotFound as e:
+            raise e
+        
+        instance = await Comment.create(creator_id=creator_id, post=post, **content.dict())
+        await self.broker.publish_comment_created(instance)
+        return instance
+    
+    async def edit(self, instance: Comment, new_content: CommentUpdateSchema) -> Comment:
+        instance.content = new_content.content
+        await instance.save()
+        await self.broker.publish_comment_updated(instance)
+        return instance
+        
+    async def get(self, id: int) -> Comment:
+        try:
+            instance = await Comment.get(id=id)
+        except DoesNotExist:
+            raise CommentNotFound()
+        
+        return instance
+    
+    async def delete(self, instance: Comment):
+        comment_id = instance.id
+        post_id = instance.post_id
+        await instance.delete()
+        await self.broker.publish_comment_deleted(post_id, comment_id)
+        
+    async def bulk_delete(self, filters: dict = None):
+        comments = await Comment.filter(**filters)
+        for comment in comments:
+            await comment.delete()

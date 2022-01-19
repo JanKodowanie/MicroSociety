@@ -1,18 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, status, Response
-from typing import List
-from uuid import UUID
 from core.schemas import *
 from core.managers import *
 from core.exceptions import *
 from core.permissions import *
-from typing import List
 from common.auth.jwt import JWTBearer
 from common.auth.schemas import AccessTokenSchema
 from common.responses import *
 
 
 router = APIRouter(
-    tags=['Post'],
+    tags=['Blog'],
     responses= {
         status.HTTP_401_UNAUTHORIZED: NotAuthenticatedResponse().dict(),
         status.HTTP_403_FORBIDDEN: ForbiddenResponse().dict(),
@@ -93,23 +90,6 @@ async def edit_blog_post(
     return Response(status_code=status.HTTP_204_NO_CONTENT)  
 
 
-@router.get(
-    '/post/{post_id}',
-    response_model = PostGetDetailsSchema,
-    status_code=status.HTTP_200_OK
-)
-async def get_blog_post(
-    post_id: int,
-    manager: PostManager = Depends()
-):
-    try:
-        instance = await manager.get(post_id)
-    except PostNotFound as e:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.detail)
-
-    return instance
-
-
 @router.post(
     '/post/{post_id}/like',
     status_code=status.HTTP_204_NO_CONTENT
@@ -149,46 +129,66 @@ async def delete_post_like(
     return Response(status_code=status.HTTP_204_NO_CONTENT) 
 
 
-@router.get(
-    '/posts',
-    response_model=List[PostGetListSchema]
+@router.post(
+    '/post/{post_id}/comment',
+    response_model=CommentCreatedResponse,
+    status_code=status.HTTP_201_CREATED
 )
-async def get_post_list(
-    manager: PostManager = Depends()
+async def create_comment(
+    post_id: int,
+    request: CommentCreateSchema,
+    manager: CommentManager = Depends(),
+    user: AccessTokenSchema = Depends(JWTBearer())
 ):
-    return await manager.get_list()
-
-
-@router.get(
-    '/posts/{user_id}',
-    response_model=List[PostGetListSchema]
-)
-async def get_posts_by_user_id(
-    user_id: UUID, 
-    manager: PostManager = Depends()
-):
-    filters = {
-        "creator_id": user_id
-    }
-    return await manager.get_list(filters)
-
-
-@router.get(
-    '/tag/{name}',
-    response_model=List[PostGetListSchema]
-)
-async def get_posts_in_tag(name: str, manager: TagManager = Depends()):
-    try:
-        posts = await manager.get_posts_in_tag(name)
-    except TagNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=NotFoundResponse().detail)
+    if not IsBlogUser.has_permission(user):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
     
-    return posts
+    try:
+        instance = await manager.create(user.sub, request, post_id)
+    except PostNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.detail)
+    
+    return instance
 
 
-@router.get(
-    '/tags',
-    response_model=List[TagGetFullSchema]
+@router.put(
+    '/comment/{comment_id}',
+    status_code=status.HTTP_204_NO_CONTENT
 )
-async def get_tag_list(manager: TagManager = Depends()):
-    return await manager.get_tag_list()
+async def edit_comment(
+    comment_id: int, 
+    request: CommentUpdateSchema,
+    manager: CommentManager = Depends(),
+    user: AccessTokenSchema = Depends(JWTBearer())
+):
+    try:
+        instance = await manager.get(comment_id)
+    except CommentNotFound as e:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=e.detail)
+    
+    if not IsBlogUser.has_object_permission(instance, user):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+
+    await manager.edit(instance, request)
+    return Response(status_code=status.HTTP_204_NO_CONTENT) 
+    
+
+@router.delete(
+    '/comment/{comment_id}',
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_comment(
+    comment_id: int, 
+    manager: CommentManager = Depends(),
+    user: AccessTokenSchema = Depends(JWTBearer())
+):
+    try:
+        instance = await manager.get(comment_id)
+        if not IsBlogUser.has_object_permission(instance, user) \
+                and not IsModerator.has_object_permission(instance, user):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+        await manager.delete(instance)
+    except CommentNotFound:
+        pass
+    
+    return Response(status_code=status.HTTP_204_NO_CONTENT) 

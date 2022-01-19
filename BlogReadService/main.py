@@ -5,11 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from common.ms_app import MSApp
 from core.events.event_handler import EventHandler
-from core.router import router as posts_router
+from core.router import router as blog_router
 
 
 app = MSApp()
-app.include_router(posts_router)
+app.include_router(blog_router)
 
 app.add_middleware(
     CORSMiddleware,

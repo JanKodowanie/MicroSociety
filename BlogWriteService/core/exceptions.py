@@ -28,3 +28,9 @@ class LikeCreationAttemptByCreator(Exception):
     def __init__(self):
         self.detail = 'Użytkownik nie może polubić swojego posta.'
         super().__init__(self.detail)
+        
+        
+class CommentNotFound(Exception):
+    def __init__(self):
+        self.detail = 'Komentarz o podanym id nie istnieje.'
+        super().__init__(self.detail)

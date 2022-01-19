@@ -1,8 +1,7 @@
 from fastapi import Request
 from .published import *
 from common.events.models import *
-from core.models import Post
-from core.comments.models import Comment
+from core.models import Post, Comment
 from common.events.broker_client import BrokerClient
 from common.enums import *
 

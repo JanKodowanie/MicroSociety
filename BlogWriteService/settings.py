@@ -15,7 +15,6 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 MODEL_PATHS = (
     "core.models",
-    "core.comments.models",
     "common.events.models",
     "common.auth.models",
     "aerich.models"

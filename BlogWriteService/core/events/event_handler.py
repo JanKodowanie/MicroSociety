@@ -2,8 +2,7 @@ from settings import logger
 from .received import *
 from common.events.models import *
 from pydantic import ValidationError
-from core.managers import PostManager
-from core.comments.managers import CommentManager
+from core.managers import PostManager, CommentManager
 from common.auth.models import FullLogoutEvent
 
 

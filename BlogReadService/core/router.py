@@ -3,11 +3,10 @@ from typing import List
 from .schemas import *
 from .managers import *
 from common.responses import *
-import settings
 
 
 router = APIRouter(
-    tags=['Post'],
+    tags=['Blog'],
     responses= {
         status.HTTP_401_UNAUTHORIZED: NotAuthenticatedResponse().dict(),
         status.HTTP_403_FORBIDDEN: ForbiddenResponse().dict(),
