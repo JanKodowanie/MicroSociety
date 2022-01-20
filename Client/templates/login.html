@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %}Logowanie{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/login.js"></script>
+{% endblock head %}
+{% block content %}
+    <section class="form-with-desc">
+        <div class="greetings">
+            <h1>Logowanie</h1>
+            <p>Zaloguj się, by móc pisać posty na naszym blogu!</p>
+        </div>
+        <form class="auth-form" id="loginform">
+            <ul class="form-list">
+                <li>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
+                </li>
+                <li>
+                    <input type="password" id="password" name="password" placeholder="Hasło" required>
+                </li>         
+                <li>
+                    <button class="button1" type="submit">Prześlij</button>
+                </li> 
+                <li>
+                    <a class="link" href="/password-reset-code">Nie pamiętasz hasła?</a>
+                </li> 
+            </ul>
+        </form>
+        <ul class="error-list">
+            <li class="error-mes-hidden" id="signin-error"></li>
+        </ul>
+    </section>
+{% endblock content %}

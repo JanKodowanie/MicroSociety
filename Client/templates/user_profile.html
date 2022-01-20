@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% block title %}{{ profile.username }}{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/blog.js"></script>
+    <script src="/static/userProfile.js"></script>
+{% endblock head %}
+{% block content %}
+    <div>
+        <h1 class="blog-header1">Użytkownik {{ profile.username }}</h1>
+        {% if profile.role == "moderator" %}
+            <h2 class="blog-header3">moderator</h2>
+        {% endif %}
+    </div>
+    <div class="profile">
+        <div class="profile-data">
+            <div class="profile-date-created"><span>Data dołączenia: </span>{{ profile.date_joined.strftime('%d-%m-%Y')|e }}</div>
+            <div class="profile-gender"><span>Płeć: </span>{% if profile.gender == "male" %}Mężczyzna{% else %}Kobieta{% endif %}</div>
+            <div class="profile-bio">{% if profile.bio %}{{ profile.bio|e }}{% else %}Użytkownik nie dodał jeszcze opisu do swojego profilu...{% endif %}</div>
+            {% if user and (profile.id == user.id or user.role == "moderator") %}
+                <form class="buttons" action="/account/{{ profile.id }}">
+                    {% if profile.id == user.id %}
+                        <button class="button1 edit-profile-button" id="edit-profile">Edytuj profil</button>
+                    {% endif %}
+                    <button class="button1 delete-account-button" id="delete-account">Usuń konto</button>
+                </form>
+            {% endif %}
+        </div>    
+    </div>
+    <div>
+        <h2 class="blog-header3">Ostatnie posty:</h2>
+        <div class="posts-view">
+            {% for post in posts %}
+                <div class="post">
+                    <div class="post-data">
+                        <div class="post-creator"><a class="link" href="/profile/{{ post.creator.id }}">{{ post.creator.username|e }}</a></div>
+                        <div class="post-text">{{ post.content|e }}</div>
+                        {% if post.picture_url %}
+                            <div class="post-image"><img src={{ post.picture_url }}></div>
+                        {% endif %}
+                        <div class="post-tags"><span>Tagi: </span>
+                            {% for tag in post.tag_list %}
+                                {% if not loop.last %}<a class="link" href="/tag/{{ tag }}">{{ tag }}</a>, {% else %} <a class="link" href="/tag/{{ tag }}">{{ tag }}</a>{% endif %}
+                            {% endfor %}
+                        </div> 
+                        <div class="post-date"><span>Data publikacji: </span>{{ post.date_created.strftime('%d-%m-%Y %H:%M')|e }}</div>
+                        {% if user and (post.creator.id == user.id or user.role == "moderator") %}
+                            <form class="buttons" action="/post/{{ post.id }}">
+                                {% if post.creator.id == user.id %}
+                                    <button class="button1 edit-post-button">Edytuj wpis</button>
+                                {% endif %}
+                                <button class="button1 delete-post-button">Usuń wpis</button>
+                            </form>
+                        {% endif %}  
+                    </div>  
+                </div>
+            {% endfor %}
+        </div>
+    </div>   
+{% endblock content %}

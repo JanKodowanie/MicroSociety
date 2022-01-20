@@ -14,6 +14,8 @@ services:
       - ./rabbit:/var/lib/rabbitmq
     logging:
       driver: none
+    networks:
+      - microservices
 
   mongodb:
     image : mongo
@@ -21,6 +23,8 @@ services:
       - ./mongo:/data/db
     logging:
       driver: none
+    networks:
+      - microservices
 
   account_service:
     build: ./AccountService
@@ -28,6 +32,8 @@ services:
       - ./AccountService:/app
     depends_on:
       - rabbit
+    networks:
+      - microservices
     
   blog_write_service:
     build: ./BlogWriteService
@@ -35,6 +41,8 @@ services:
       - ./BlogWriteService:/app
     depends_on:
       - rabbit
+    networks:
+      - microservices
   
   blog_read_service:
     build: ./BlogReadService
@@ -43,6 +51,8 @@ services:
     depends_on:
       - mongodb
       - rabbit
+    networks:
+      - microservices
     
   email_service:
     build: ./EmailService
@@ -50,6 +60,8 @@ services:
       - ./EmailService:/app
     depends_on:
       - rabbit
+    networks:
+      - microservices
 
   gateway:
     image: nginx:latest
@@ -64,3 +76,21 @@ services:
       - email_service
     ports:
       - "8000:8000"
+    networks:
+      - external
+      - microservices
+
+  client:
+    build: ./Client
+    volumes:
+      - ./Client:/app
+    depends_on:
+      - gateway
+    ports:
+      - "80:3000"
+    networks:
+      - external
+
+networks:
+  microservices: 
+  external:

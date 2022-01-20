@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Reset hasła{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/passResetForm.js"></script>
+{% endblock head %}
+{% block content %}
+    <section class="form-with-desc" id="password-change">
+        <div class="greetings">
+            <h1>Reset hasła</h1>
+            <p>Podaj nowe hasło w formularzu obok.</p>
+        </div>
+        <form class="auth-form" id="pass-reset-form">
+            <ul class="form-list">
+                <li>
+                    <input type="password" id="new-pass1" name="new_pass1" placeholder="Nowe hasło">
+                </li>
+                <li>
+                    <input type="password" id="new-pass2" name="new_pass2" placeholder="Powtórz hasło">
+                </li>
+                <li>
+                    <button class="button1" type="submit">Prześlij</button>
+                </li> 
+            </ul>
+        </form>
+        <ul class="error-list">
+            <li class="error-mes-hidden" id="new-pass1-error"></li>
+            <li class="error-mes-hidden" id="new-pass2-error"></li>
+            <li class="error-mes-hidden" id="pass-message"></li>
+        </ul>
+    </section>
+{% endblock content %}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
+    <title>{% block title %}{% endblock title %} - Microsociety</title>
+    <script src="/static/logout.js"></script>
+    {% endblock head %}
+</head>
+    <body>
+        <nav>
+            <a class="nav-item" href="/">Blog</a>
+            {% if user %}
+                <a class="nav-item" href="/profile/{{ user.id }}" >Mój profil</a>
+                <a id="logout" class="nav-item" href="/logout" >Wyloguj się</a>
+            {% else %}
+                <a class="nav-item" href="/sign-up">Zarejestruj się</a>
+                <a class="nav-item" href="/login">Zaloguj się</a>
+            {% endif %}
+        </nav>
+        <div class="content">{% block content %}{% endblock content %}</div>
+        <footer>
+            <span id="pi">MicroSociety, 2021</span> 
+            <a id="repo-link" target="_blank" href="https://github.com/JanKodowanie/MicroSociety" id="repo">Repozytorium Github</a>
+        </footer>
+    </body>
+</html>
