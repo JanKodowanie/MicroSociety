@@ -1,35 +1,45 @@
-var post_form = null
+var comment_form = null
 window.addEventListener("load", initialize, true); 
 
 function initialize() {
-    let edit_buttons = document.getElementsByClassName("edit-post-button");
-    let delete_buttons = document.getElementsByClassName("delete-post-button");
-    let like_buttons = document.getElementsByClassName("create-post-like");
-    let unlike_buttons = document.getElementsByClassName("delete-post-like");
-    let discussion_buttons = document.getElementsByClassName("show-discussion");
-    post_form = document.getElementById("new-post-form")
-    if (post_form != null) {
-        post_form.addEventListener("submit", onSubmitPostData);
+    let post_edit_button = document.getElementsByClassName("edit-post-button");
+    let post_delete_button = document.getElementsByClassName("delete-post-button");
+    let comment_edit_buttons = document.getElementsByClassName("edit-comment-button");
+    let comment_delete_buttons = document.getElementsByClassName("delete-comment-button");
+    let like_button = document.getElementsByClassName("create-post-like");
+    let unlike_button = document.getElementsByClassName("delete-post-like");
+
+
+    comment_form = document.getElementById("new-comment-form")
+    if (comment_form != null) {
+        comment_form.addEventListener("submit", onSubmitCommentData);
     }
-        
-    for (let i = 0; i < edit_buttons.length; i++) {
-        edit_buttons[i].addEventListener('click', onEditPostButtonClicked);
+    if (post_edit_button.length > 0) {
+        post_edit_button[0].addEventListener("click", onEditPostButtonClicked);
     }
-    for (let i = 0; i < delete_buttons.length; i++) {
-        delete_buttons[i].addEventListener('click', onDeletePostButtonClicked);
+    if (post_delete_button.length > 0) {
+        post_delete_button[0].addEventListener("click", onDeletePostButtonClicked);
     }
-    for (let i = 0; i < like_buttons.length; i++) {
-        like_buttons[i].addEventListener('click', onLikePostButtonClicked);
+    if (like_button.length > 0) {
+        like_button[0].addEventListener("click", onLikePostButtonClicked);
     }
-    for (let i = 0; i < unlike_buttons.length; i++) {
-        unlike_buttons[i].addEventListener('click', onUnlikePostButtonClicked);
+    if (unlike_button.length > 0) {
+        unlike_button[0].addEventListener("click", onUnlikePostButtonClicked);
     }
-    for (let i = 0; i < discussion_buttons.length; i++) {
-        discussion_buttons[i].addEventListener('click', onDiscussionButtonClicked);
+    for (let i = 0; i < comment_edit_buttons.length; i++) {
+        comment_edit_buttons[i].addEventListener('click', onEditCommentButtonClicked);
     }
+    for (let i = 0; i < comment_delete_buttons.length; i++) {
+        comment_delete_buttons[i].addEventListener('click', onDeleteCommentButtonClicked);
+    }
+
 } 
 
 onEditPostButtonClicked = async function (e) {
+    e.preventDefault()
+}
+
+onEditCommentButtonClicked = async function (e) {
     e.preventDefault()
 }
 
@@ -45,43 +55,36 @@ onDeletePostButtonClicked = async function (e) {
             alert(response_data.detail)
         }
     } else {
-        form.parentNode.parentNode.remove()
+        window.location.href = '/'
     }
 }
 
-onSubmitPostData = async function (e) {
-    e.preventDefault()
-    let data = new FormData(post_form)
-    let response = await fetch('/post', {method: 'POST', body: data})
-    response_data = await response.json()
-    if (response.status !== 201) {
-        alert(response_data.detail)
-    } else {
-        let url = "/post/" + response_data.id
-        let post_ready = false
-        while (!post_ready) {
-            let response = await fetch(url, {method: 'GET'})
-            if (response.status === 200) {
-                post_ready = true
-            }
-        }
-        window.location.href = url
-    }
-}
-
-onDiscussionButtonClicked = async function (e) {
+onDeleteCommentButtonClicked = async function (e) {
     e.preventDefault()
     let form = e.target.parentNode
     let url = form.action
-    let response = await fetch(url, {method: 'GET'})
+    let response = await fetch(url, {method: 'DELETE'})
 
-    if (response.status !== 200) {
+    if (response.status !== 204) {
         response_data = await response.json()
         if (response_data.detail) {
             alert(response_data.detail)
         }
     } else {
-        window.location.href = url
+        form.parentNode.parentNode.remove()
+    }
+}
+
+onSubmitCommentData = async function (e) {
+    e.preventDefault()
+    let data = new FormData(comment_form)
+    let url = comment_form.action
+    let response = await fetch(url, {method: 'POST', body: data})
+    response_data = await response.json()
+    if (response.status !== 201) {
+        alert(response_data.detail)
+    } else {
+        window.location.reload()
     }
 }
 

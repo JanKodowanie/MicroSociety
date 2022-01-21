@@ -89,7 +89,10 @@ async def create_profile_picture_for_current_user(
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
     
     user = await manager.get(account.id)
-    url = await manager.save_profile_picture(user, picture)
+    try:
+        url = await manager.save_profile_picture(user, picture)
+    except InvalidFileExtension as e:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.detail) 
     
     return FileUrlResponse(url=url)
     

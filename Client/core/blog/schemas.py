@@ -28,20 +28,11 @@ class TagGetSchema(pydantic.BaseModel):
     popularity: int
     
     
-class PostCreateSchema(pydantic.BaseModel):
-    content: pydantic.constr(strip_whitespace=True, min_length=1, max_length=500)
-    picture: Optional[UploadFile]
-    
-    
-class CommentCreateSchema(pydantic.BaseModel):
-    content: pydantic.constr(strip_whitespace=True, min_length=1, max_length=300)     
-    
-    
 class CommentGetSchema(pydantic.BaseModel):
     id: int
     content: str
     creator: CreatorSchema
-    date_created: datetime     
+    date_created: str     
      
     def dict(self, *args, **kwargs):
         comment = super().dict(*args, **kwargs)
@@ -77,3 +68,7 @@ class PostListSchema(pydantic.BaseModel):
     
     def dict(self, *args, **kwargs):
         return super().dict(*args, **kwargs).get('posts')
+    
+    
+class CreatedResponse(pydantic.BaseModel):
+    id: int

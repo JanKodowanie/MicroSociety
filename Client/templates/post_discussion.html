@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block title %}Blog{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/postDiscussion.js"></script>
+{% endblock head %}
+{% block content %}
+    <div>
+        <h1 class="blog-header1"></h1>
+    </div>
+    <div class="posts-view">
+        <div class="post">
+            <div class="post-data">
+                <div class="post-header">
+                    <div class="post-creator">
+                        {% if post.creator.picture_url %}
+                            <img src={{ post.creator.picture_url }}>
+                        {% endif %}
+                        <a class="link" href="/profile/{{ post.creator.id }}">{{ post.creator.username|e }}</a>
+                    </div>
+                    <div class="post-likes">
+                        <span class="like-count">+{{ post.like_count }}</span>
+                        {% if user and user.role != "administrator" and user.id != post.creator.id %}
+                            <form class="buttons" action="/post/{{ post.id }}/like">
+                                {% if user.id not in post.like_list %}
+                                    <button class="button1 create-post-like">+</button>
+                                {% else %}
+                                    <button class="button1 delete-post-like">–</button>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="post-text">{{ post.content|e }}</div>
+                {% if post.picture_url %}
+                    <div class="post-image"><img src={{ post.picture_url }}></div>
+                {% endif %}
+                <div class="post-tags"><span>Tagi: </span>
+                    {% for tag in post.tag_list %}
+                        {% if not loop.last %}<a class="link" href="/tag/{{ tag }}">{{ tag }}</a>, {% else %} <a class="link" href="/tag/{{ tag }}">{{ tag }}</a>{% endif %}
+                    {% endfor %}
+                </div> 
+                <div class="post-date"><span>Data publikacji: </span>{{ post.date_created.strftime('%d-%m-%Y %H:%M')|e }}</div>
+                <form class="buttons" action="/post/{{ post.id }}">
+                    {% if user and user.role != "administrator" and (post.creator.id == user.id or user.role == "moderator") %}
+                        {% if post.creator.id == user.id %}
+                            <button class="button1 edit-post-button">Edytuj wpis</button>
+                        {% endif %}
+                            <button class="button1 delete-post-button">Usuń wpis</button>
+                    {% endif %}
+                </form>
+            </div>  
+        </div>
+        <div class="header-container">
+            <h1 class="blog-header2">Komentarze:</h1>
+        </div>
+        {% if user and user.role != "administrator" %}
+            <div class="new-post">
+                <form class="new-post-form" id="new-comment-form" action="/post/{{ post.id }}/comment">
+                    <ul>
+                        <li>
+                            <textarea placeholder="Wpisz treść tutaj..." id="new-comment-content" name="content" form="new-comment-form" required></textarea>
+                        </li>
+                        <li>
+                            <button type="submit" class="button1 create-comment-button">Dodaj komentarz</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>    
+        {% endif %}
+        {% for comment in post.comments %}
+            <div class="comment">
+                <div class="comment-data">
+                    <div class="comment-creator">
+                        {% if comment.creator.picture_url %}
+                            <img src={{ comment.creator.picture_url }}>
+                        {% endif %}
+                        <a class="link" href="/profile/{{ comment.creator.id }}">{{ comment.creator.username|e }}</a>
+                    </div>
+                    <div class="comment-text">{{ comment.content|e }}</div>
+                    <div class="comment-date"><span>Data publikacji: </span>{{ comment.date_created.strftime('%d-%m-%Y %H:%M')|e }}</div>
+                    <form class="buttons" action="/comment/{{ comment.id }}">
+                        {% if user and user.role != "administrator" and (comment.creator.id == user.id or user.role == "moderator") %}
+                            {% if comment.creator.id == user.id %}
+                                <button class="button1 edit-comment-button">Edytuj komentarz</button>
+                            {% endif %}
+                                <button class="button1 delete-comment-button">Usuń komentarz</button>
+                        {% endif %}
+                    </form>
+                </div>  
+            </div>
+        {% endfor %}
+    </div> 
+{% endblock content %}

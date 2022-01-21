@@ -105,7 +105,7 @@ class CommentCollectionManager:
         await self.collection.insert_one(model.dict())
         
     async def get_comments_for_post(self, post_id: int) -> Optional[List[dict]]:
-        cursor = self.collection.find({"post_id": post_id}).sort([("date_created", pymongo.ASCENDING)])
+        cursor = self.collection.find({"post_id": post_id}).sort([("date_created", pymongo.DESCENDING)])
         return await cursor.to_list(None)
     
     async def update_comment(self, event: CommentUpdated):

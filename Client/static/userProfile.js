@@ -6,19 +6,18 @@ function initialize() {
     let delete_buttons = document.getElementsByClassName("delete-account-button");
     
     for (let i = 0; i < edit_buttons.length; i++) {
-        edit_buttons[i].addEventListener('click', onEditButtonClicked);
+        edit_buttons[i].addEventListener('click', onEditAccountButtonClicked);
     }
     for (let i = 0; i < delete_buttons.length; i++) {
-        delete_buttons[i].addEventListener('click', onDeleteButtonClicked);
+        delete_buttons[i].addEventListener('click', onDeleteAccountButtonClicked);
     }
 } 
 
-onEditButtonClicked = async function (e) {
+onEditAccountButtonClicked = async function (e) {
     e.preventDefault()
-    console.log("test")
 }
 
-onDeleteButtonClicked = async function (e) {
+onDeleteAccountButtonClicked = async function (e) {
     e.preventDefault()
     let form = e.target.parentNode
     let url = form.action

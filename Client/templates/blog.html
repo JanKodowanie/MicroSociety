@@ -6,12 +6,12 @@
 {% endblock head %}
 {% block content %}
     <div>
-        <h1 class="blog-header1">{% if user %}Witaj, {{ user.username|e }}!{% else %}Witaj!{% endif %}</h1>
+        <h1 class="blog-header1">{% if user and user.role != "administrator" %}Witaj, {{ user.username|e }}!{% else %}Witaj!{% endif %}</h1>
     </div>
     <div>
         <h2 class="blog-header3">Oto najnowsze posty:</h2>
         <div class="posts-view">
-            {% if user %}
+            {% if user and user.role != "administrator" %}
                 <div class="new-post">
                     <form class="new-post-form" id="new-post-form">
                         <ul>
@@ -32,7 +32,26 @@
             {% for post in posts %}
                 <div class="post">
                     <div class="post-data">
-                        <div class="post-creator"><a class="link" href="/profile/{{ post.creator.id }}">{{ post.creator.username|e }}</a></div>
+                        <div class="post-header">
+                            <div class="post-creator">
+                                {% if post.creator.picture_url %}
+                                    <img src={{ post.creator.picture_url }}>
+                                {% endif %}
+                                <a class="link" href="/profile/{{ post.creator.id }}">{{ post.creator.username|e }}</a>
+                            </div>
+                            <div class="post-likes">
+                                <span class="like-count">+{{ post.like_count }}</span>
+                                {% if user and user.role != "administrator" and user.id != post.creator.id %}
+                                    <form class="buttons" action="/post/{{ post.id }}/like">
+                                        {% if user.id not in post.like_list %}
+                                            <button class="button1 create-post-like">+</button>
+                                        {% else %}
+                                            <button class="button1 delete-post-like">–</button>
+                                        {% endif %}
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
                         <div class="post-text">{{ post.content|e }}</div>
                         {% if post.picture_url %}
                             <div class="post-image"><img src={{ post.picture_url }}></div>
@@ -43,14 +62,15 @@
                             {% endfor %}
                         </div> 
                         <div class="post-date"><span>Data publikacji: </span>{{ post.date_created.strftime('%d-%m-%Y %H:%M')|e }}</div>
-                        {% if user and (post.creator.id == user.id or user.role == "moderator") %}
-                            <form class="buttons" action="/post/{{ post.id }}">
+                        <form class="buttons" action="/post/{{ post.id }}">
+                            {% if user and user.role != "administrator" and (post.creator.id == user.id or user.role == "moderator") %}
                                 {% if post.creator.id == user.id %}
                                     <button class="button1 edit-post-button">Edytuj wpis</button>
                                 {% endif %}
-                                <button class="button1 delete-post-button">Usuń wpis</button>
-                            </form>
-                        {% endif %}  
+                                    <button class="button1 delete-post-button">Usuń wpis</button>
+                            {% endif %}
+                            <button class="button1 show-discussion">Dyskusja</button>  
+                        </form>
                     </div>  
                 </div>
             {% endfor %}

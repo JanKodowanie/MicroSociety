@@ -85,13 +85,50 @@ h1 {
     margin: auto;
 }
 
+.post-header {
+    display: flex;
+    justify-content: space-between;
+}
+
 .post-creator {
     font-size: calc(20px + 0.4vw);
     font-weight: 700;
+    display: flex;
+}
+
+.post-creator a {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.post-creator img {
+    margin-right: calc(10px + 0.4vw);
+    width: calc(50px + 1vw);
+    height: calc(50px + 1vw);
+}
+
+.post-likes {
+    display: flex;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.post-likes span {
+    color: crimson;
+    font-weight: 400;
+    font-size: calc(20px + 0.4vw);
+    margin-right: calc(10px + 0.4vw);
+}
+
+.post-likes .button1 {
+    font-weight: 700;
+    font-size: calc(12px + 0.4vw);
+    width: calc(25px + 0.5vw);
+    height: calc(25px + 0.5vw);
 }
 
 .post-text {
-    margin:  calc(15px + 0.8vw) 0;
+    margin:  calc(10px + 0.8vw) 0;
     font-size: calc(15px + 0.2vw);
     word-wrap: break-word;
     text-align: justify;
@@ -112,15 +149,75 @@ h1 {
     font-weight: 700;
 }
 
+.comment {
+    display: flex;
+    margin-bottom: calc(5px + 1%);
+    color: rgb(255, 255, 255);
+    min-height: calc(150px + 0.4vh);
+}
+
+.comment-data {
+    font-size: calc(8px + 0.5vw);
+    padding: calc(10px + 1%);
+    background-color: rgb(21, 21, 21);
+    border: thin solid;
+    border-color: rgb(127, 127, 127);
+    width: calc(300px + 20%);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.comment-creator {
+    font-size: calc(20px + 0.4vw);
+    font-weight: 700;
+    display: flex;
+}
+
+.comment-creator a {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.comment-creator img {
+    margin-right: calc(10px + 0.4vw);
+    width: calc(50px + 1vw);
+    height: calc(50px + 1vw);
+}
+
+.comment-text {
+    margin:  calc(10px + 0.8vw) 0;
+    font-size: calc(15px + 0.2vw);
+    word-wrap: break-word;
+    text-align: justify;
+    white-space: pre-wrap;
+}
+
+.comment-date {
+    font-size: calc(15px + 0.2vw);
+    margin-bottom: calc(5px + 0.2vw);
+}
+
+.comment-data span {
+    color: crimson;
+    font-weight: 700;
+}
+
+.header-container {
+    display: flex;
+}
+
 .blog-header1 {
     font-size: calc(30px + 0.5vw);
     margin-top: calc(30px + 0.5vw);
 }
 
 .blog-header2 {
-    font-size: calc(10px + 0.6vw);
-    font-weight: 700;
-    margin: 2% 0;
+    font-size: calc(30px + 0.5vw);
+    margin-top: calc(30px + 0.5vw);
+    margin-bottom: calc(30px + 0.5vw);
+    margin-left: auto;
+    margin-right: auto;
+    width: calc(300px + 25%);
     text-align: left;
 }
 

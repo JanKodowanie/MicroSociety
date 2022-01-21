@@ -4,7 +4,6 @@ import settings
 from fastapi import Cookie, status, Response
 from .schemas import UserSession, Credentials, LoginResponse
 from typing import Optional
-from starlette.responses import RedirectResponse
 
 
 async def get_user_session(user_data: Optional[str] = Cookie(None),
@@ -34,11 +33,9 @@ async def save_data_and_credentials_in_cookies(user_data: LoginResponse, respons
 async def get_refreshed_credentials(credentials: Credentials):
     async with httpx.AsyncClient() as client:
         headers = {'authorization': credentials.refresh_token}
-        refresh_response = await client.post(f'{settings.BACKEND_URL}/refresh-token', headers=headers)
+        refresh_response = await client.post(f'{settings.BACKEND_URL}/user-management/refresh-token', headers=headers)
         if refresh_response.status_code == status.HTTP_401_UNAUTHORIZED:
-            response = RedirectResponse('/login')
-            await remove_user_data_cookies(response)
-            return response
+            return None
         updated_data = LoginResponse(**refresh_response.json()) 
         
     return updated_data

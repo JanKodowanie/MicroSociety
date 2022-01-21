@@ -51,11 +51,32 @@ async def login_user(
 
 @router.get(
     "/logout",
-    response_model=OkResponse, 
-    status_code=status.HTTP_200_OK)
+    status_code=status.HTTP_204_NO_CONTENT)
 async def logout_user(response: Response):
     await remove_user_data_cookies(response)
-    return OkResponse(detail="Użytkownik został wylogowany.")
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
+
+
+@router.get(
+    "/logout-all",
+    status_code=status.HTTP_204_NO_CONTENT)
+async def logout_user_on_all_devices(
+    response: Response,
+    user: Optional[UserSession] = Depends(get_user_session)
+):
+    await remove_user_data_cookies(response)
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    
+    async with httpx.AsyncClient() as client:
+        headers = {'authorization': user.access_token}
+        logout_response = await client.post(f'{settings.BACKEND_URL}/user-management/full-logout', headers=headers)
+        if logout_response.status_code == status.HTTP_204_NO_CONTENT:
+            raise HTTPException(logout_response.status_code, detail=logout_response.json())
+        
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
 
 
 @router.get("/sign-up", response_class=HTMLResponse)
