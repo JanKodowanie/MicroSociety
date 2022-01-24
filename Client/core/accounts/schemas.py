@@ -1,11 +1,9 @@
 import pydantic
 from uuid import UUID
-from settings import MEDIA_URL
-from typing import Optional, List
+from typing import Optional
 from .enums import *
 from common.validators import *
 from datetime import datetime
-from common.date_converter import DateConverter
 
 
 class BlogUserCreateSchema(pydantic.BaseModel):
@@ -15,8 +13,9 @@ class BlogUserCreateSchema(pydantic.BaseModel):
     gender: AccountGender
     
     _username_is_alphanumeric: classmethod = alphanumeric_validator("username")
-    
-    
+
+
+
 class BlogUserEditSchema(pydantic.BaseModel):
     username: pydantic.constr(strip_whitespace=True, min_length=6, max_length=20)
     email: pydantic.EmailStr
@@ -34,32 +33,6 @@ class AccountGetBasicSchema(pydantic.BaseModel):
     status: AccountStatus
     
 
-class BlogUserGetBasicSchema(AccountGetBasicSchema):
-    rank: AccountRank
-    picture_url: Optional[str]  
-    
-    
-class BlogUserGetProfileSchema(BlogUserGetBasicSchema):
-    bio: Optional[str]
-    points: int
-    date_joined: datetime
-    
-    def dict(self):
-        user = super().dict()
-        user['date_joined'] = DateConverter.convert_str_to_datetime(user['date_joined'])
-        if user['picture_url']:
-            user['picture_url'] = MEDIA_URL + user['picture_url']
-        return user 
-    
-
-class BlogUserGetDetailsSchema(BlogUserGetProfileSchema):
-    email: str
-    
-    
-class BlogUserListSchema(pydantic.BaseModel):
-    users: Optional[List[BlogUserGetBasicSchema]]
-    
-    
 class LoginResponse(pydantic.BaseModel):
     access_token: str
     refresh_token: str

@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block title %}Rejestracja{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/accountEdit.js"></script>
+{% endblock head %}
+{% block content %}
+    <section class="form-with-desc">
+        <div class="greetings">
+            <h1>Edycja konta:</h1>
+        </div>
+        <div>
+            <form class="auth-form" id="account-edit-form">
+                <ul class="form-list">
+                    <li>
+                        <input type="text" id="username" name="username" value="{{ data.username }}" placeholder="Nazwa użytkownika" required>
+                    </li>
+                    <li>
+                        <input type="email" id="email" name="email" value="{{ data.email }}" placeholder="Email" required>
+                    </li>
+                    <li>
+                        <label for="gender">Płeć:</label>
+                        <select id="gender" name="gender" required>
+                            {% if data.gender == "male" %}
+                                <option value="male" selected>Mężczyzna</option>
+                                <option value="female">Kobieta</option>
+                            {% else %}
+                                <option value="male">Mężczyzna</option>
+                                <option value="female" selected>Kobieta</option>
+                            {% endif %}
+                        </select>
+                    </li>
+                    <li>
+                        <textarea placeholder="Opis profilu..." id="profile-bio" name="bio" form="account-edit-form">{{ data.bio }}</textarea>
+                    </li>
+                    <li>
+                        <button type="submit" id="data-submit-button" class="button1">Zmień dane</button>
+                    </li>
+                </ul>
+            </form>
+            <form class="auth-form" id="picture-form">
+                <ul class="form-list">
+                {% if data.picture_url %}
+                    <img src={{ data.picture_url }}>
+                    <li>
+                        <button type="button" id="picture-delete" class="button1">Usuń zdjęcie profilowe</button>
+                    </li>  
+                {% else %}    
+                    <li>
+                        <label for="picture">Zdjęcie: </label>
+                        <input type="file" id="picture" name="picture" accept="image/png, image/jpeg, image/jpg" required>
+                    </li>
+                    <li>
+                        <button type="submit" class="button1">Dodaj zdjęcie profilowe</button>
+                    </li>
+                {% endif %}
+                </ul>
+            </form>
+        </div>
+        <!-- <form class="auth-form" id="account-edit-form">
+            <ul class="form-list">
+                <li>
+                    <input type="text" id="username" name="username" value="{{ data.username }}" placeholder="Nazwa użytkownika">
+                </li>
+                <li>
+                    <input type="email" id="email" name="email" value="{{ data.email }}" placeholder="Email">
+                </li>
+                <li>
+                    <label for="gender">Płeć:</label>
+                    <select id="gender" name="gender">
+                        {% if data.gender == "male" %}
+                            <option value="male" selected>Mężczyzna</option>
+                            <option value="female">Kobieta</option>
+                        {% else %}
+                            <option value="male">Mężczyzna</option>
+                            <option value="female" selected>Kobieta</option>
+                        {% endif %}
+                    </select>
+                </li>
+                <li>
+                    <textarea placeholder="Opis profilu..." id="profile-bio" name="bio" form="account-edit-form">{{ data.bio }}</textarea>
+                </li>
+                <li>
+                    <button class="button1">Zmień dane</button>
+                </li>
+                {% if data.picture_url %}
+                    <div class="post-creator">
+                            <img src={{ data.picture_url }}>
+                    </div>
+                    <li>
+                        <button class="button1">Usuń zdjęcie</button>
+                    </li>  
+                {% else %}    
+                    <li>
+                        <label for="picture">Zdjęcie: </label>
+                        <input type="file" id="picture" name="picture" accept="image/png, image/jpeg, image/jpg">
+                    </li>
+                    <li>
+                        <button class="button1">Dodaj zdjęcie</button>
+                    </li>
+                {% endif %}
+            </ul>
+        </form> -->
+        <ul class="error-list">
+            <li class="error-mes-hidden" id="username-error"></li>
+            <li class="error-mes-hidden" id="email-error"></li>
+            <li class="error-mes-hidden" id="picture-error"></li>
+            <li class="error-mes-hidden" id="success-mes"></li>
+        </ul>
+    </section>
+{% endblock content %}

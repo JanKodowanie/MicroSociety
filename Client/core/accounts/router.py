@@ -1,12 +1,12 @@
 import httpx
 import settings
-from fastapi import APIRouter, HTTPException, Form, Request, status, Response, Depends
+from fastapi import APIRouter, HTTPException, Form, Request, status, Response, Depends, UploadFile, File
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from common.responses import *
 from .schemas import *
+from core.blog.schemas import BlogUserGetDetailsSchema
 from .auth import *
-from core.blog.schemas import PostListSchema
 
 
 router = APIRouter(
@@ -20,6 +20,32 @@ router = APIRouter(
 
 
 templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/sign-up", response_class=HTMLResponse)
+async def get_registration_page(request: Request):
+    return templates.TemplateResponse("registration.html", {"request": request})
+
+
+@router.post(
+    "/sign-up", 
+    response_model=OkResponse,
+    status_code=status.HTTP_201_CREATED
+)
+async def register_user(
+    username: str = Form(...),
+    password: str = Form(...),
+    email: str = Form(...),
+    gender: str = Form(...)
+):
+    data = BlogUserCreateSchema(username=username, email=email, password=password, gender=gender)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f'{settings.BACKEND_URL}/user-management/blog-user', json=data.dict())
+        response_data = response.json()
+        if response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=response_data['detail'])
+        
+    return OkResponse(detail="Konto zostało utworzone.")
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -51,58 +77,28 @@ async def login_user(
 
 @router.get(
     "/logout",
-    status_code=status.HTTP_204_NO_CONTENT)
-async def logout_user(response: Response):
-    await remove_user_data_cookies(response)
-    response.status_code = status.HTTP_204_NO_CONTENT
-    return response
+    status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+async def logout_user():
+    return await redirect_to_login()
 
 
-@router.get(
+@router.post(
     "/logout-all",
     status_code=status.HTTP_204_NO_CONTENT)
 async def logout_user_on_all_devices(
     response: Response,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    await remove_user_data_cookies(response)
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     
     async with httpx.AsyncClient() as client:
         headers = {'authorization': user.access_token}
-        logout_response = await client.post(f'{settings.BACKEND_URL}/user-management/full-logout', headers=headers)
-        if logout_response.status_code == status.HTTP_204_NO_CONTENT:
-            raise HTTPException(logout_response.status_code, detail=logout_response.json())
-        
+        await client.post(f'{settings.BACKEND_URL}/user-management/full-logout', headers=headers)
+    
+    await remove_user_data_cookies(response)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
-
-
-@router.get("/sign-up", response_class=HTMLResponse)
-async def get_registration_page(request: Request):
-    return templates.TemplateResponse("registration.html", {"request": request})
-
-
-@router.post(
-    "/sign-up", 
-    response_model=OkResponse,
-    status_code=status.HTTP_201_CREATED
-)
-async def register_user(
-    username: str = Form(...),
-    password: str = Form(...),
-    email: str = Form(...),
-    gender: str = Form(...)
-):
-    data = BlogUserCreateSchema(username=username, email=email, password=password, gender=gender)
-    async with httpx.AsyncClient() as client:
-        response = await client.post(f'{settings.BACKEND_URL}/user-management/blog-user', json=data.dict())
-        response_data = response.json()
-        if response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=response_data['detail'])
-        
-    return OkResponse(detail="Konto zostało utworzone.")
 
 
 @router.get("/password-reset-code", response_class=HTMLResponse)
@@ -128,6 +124,112 @@ async def get_password_reset_code(
         await client.post(f'{settings.BACKEND_URL}/user-management/password-reset-code', json=data.dict())
         
     return OkResponse(detail=msg)
+
+
+@router.put(
+    "/account", 
+    status_code=status.HTTP_200_OK, 
+    response_model=OkResponse
+)
+async def edit_account(
+    data: BlogUserEditSchema,
+    response: Response,
+    user: Optional[UserSession] = Depends(get_user_session)
+):
+    if not user or user.role == AccountRole.ADMINISTRATOR:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    
+    async with httpx.AsyncClient() as client:
+        headers = {'authorization': user.access_token}
+        edit_response = await client.put(f'{settings.BACKEND_URL}/user-management/blog-user', 
+                                        json=data.dict(), headers=headers)
+        response_data = edit_response.json()
+        if edit_response.status_code != status.HTTP_200_OK:
+            if edit_response.status_code == status.HTTP_401_UNAUTHORIZED:
+                return await redirect_to_login()
+            raise HTTPException(response.status_code, detail=response_data['detail'])
+    
+    updated_data = AccountGetBasicSchema(**response_data)
+    await update_user_data_in_cookies(updated_data, response)
+    return OkResponse(detail="Dane użytkownika zostały zaktualizowane.")
+
+
+@router.patch(
+    "/account/profile-picture", 
+    status_code=status.HTTP_200_OK, 
+    response_model=OkResponse
+)
+async def add_profile_picture(
+    response: Response,
+    picture: UploadFile = File(None),
+    user: Optional[UserSession] = Depends(get_user_session)
+):
+    if not user or user.role == AccountRole.ADMINISTRATOR:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    
+    files = {
+        "picture": (picture.filename, await picture.read())
+    }
+    
+    async with httpx.AsyncClient() as client:
+        headers = {'authorization': user.access_token}
+        response = await client.patch(f'{settings.BACKEND_URL}/user-management/blog-user/add-picture', 
+                                    files=files, headers=headers)
+        response_data = response.json()
+        if response.status_code != status.HTTP_201_CREATED:
+            if response.status_code == status.HTTP_401_UNAUTHORIZED:
+                return await redirect_to_login()
+            raise HTTPException(response.status_code, detail=response_data['detail'])
+    
+    return OkResponse(detail="Zdjęcie profilowe zostało dodane.")
+
+
+@router.delete(
+    "/account/profile-picture", 
+    status_code=status.HTTP_200_OK, 
+    response_model=OkResponse
+)
+async def delete_profile_picture(
+    response: Response,
+    user: Optional[UserSession] = Depends(get_user_session)
+):
+    if not user or user.role == AccountRole.ADMINISTRATOR:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    
+    async with httpx.AsyncClient() as client:
+        headers = {'authorization': user.access_token}
+        response = await client.delete(f'{settings.BACKEND_URL}/user-management/blog-user/delete-picture', 
+                                    headers=headers)
+        if response.status_code != status.HTTP_204_NO_CONTENT:
+            if response.status_code == status.HTTP_401_UNAUTHORIZED:
+                return await redirect_to_login()
+            raise HTTPException(response.status_code, detail="Nie udało się usunąć zdjęcia profilowego.")
+    
+    return OkResponse(detail="Zdjęcie profilowe zostało usunięte.")
+
+
+@router.get(
+    "/account/edit-form", 
+    response_model=OkResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_account_edit_form(
+    request: Request,
+    response: Response,
+    user: Optional[UserSession] = Depends(get_user_session)
+):
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    
+    async with httpx.AsyncClient() as client:
+        headers = {'authorization': user.access_token}
+        data_response = await client.get(f'{settings.BACKEND_URL}/user-management/blog-user', headers=headers)
+        if data_response.status_code == status.HTTP_401_UNAUTHORIZED:
+            return await redirect_to_login()
+        account_data = BlogUserGetDetailsSchema(**data_response.json())
+    
+    return templates.TemplateResponse("blog_user_edit.html", {"request": request, 
+                                            "user": user, "data": account_data.dict()})
 
 
 @router.get("/account/reset-password/{code}", response_class=HTMLResponse)
@@ -179,26 +281,39 @@ async def delete_account(
         headers = {'authorization': user.access_token}
         await client.delete(f'{settings.BACKEND_URL}{request_url}', headers=headers)
     
-    remove_user_data_cookies(response)
+    await remove_user_data_cookies(response)
     return OkResponse(detail="Konto zostało usunięte.")
 
 
-@router.get("/profile/{id}", response_class=HTMLResponse)
-async def get_user_profile(
+@router.patch(
+    "/account/{id}/ban", 
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def ban_account(
     id: UUID,
-    request: Request,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
+    if not user or not user.role == AccountRole.MODERATOR:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     async with httpx.AsyncClient() as client:
-        profile_response = await client.get(f'{settings.BACKEND_URL}/user-management/blog-user/{id}')
-        profile = profile_response.json()
-        if profile_response.status_code == status.HTTP_404_NOT_FOUND:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail=profile['detail'])
+        headers = {'authorization': user.access_token}
+        await client.patch(f'{settings.BACKEND_URL}/user-management/blog-user/{id}/ban', headers=headers)
+    
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-        profile = BlogUserGetProfileSchema(**profile)
-        params = {"creator_id": id}
-        response = await client.get(f'{settings.BACKEND_URL}/blog-read/posts', params=params)
-        posts = response.json()
-        posts = PostListSchema(posts=posts)
-         
-    return templates.TemplateResponse("user_profile.html", {"request": request, "user": user, "posts": posts.dict(), "profile": profile})
+
+@router.patch(
+    "/account/{id}/unban", 
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def unban_account(
+    id: UUID,
+    user: Optional[UserSession] = Depends(get_user_session)
+):
+    if not user or not user.role == AccountRole.MODERATOR:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    async with httpx.AsyncClient() as client:
+        headers = {'authorization': user.access_token}
+        await client.patch(f'{settings.BACKEND_URL}/user-management/blog-user/{id}/unban', headers=headers)
+    
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

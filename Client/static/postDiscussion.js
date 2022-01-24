@@ -84,6 +84,14 @@ onSubmitCommentData = async function (e) {
     if (response.status !== 201) {
         alert(response_data.detail)
     } else {
+        let url = "/comment/" + response_data.id
+        let comment_ready = false
+        while (!comment_ready) {
+            let response = await fetch(url, {method: 'GET'})
+            if (response.status === 200) {
+                comment_ready = true
+            }
+        }
         window.location.reload()
     }
 }

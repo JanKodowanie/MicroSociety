@@ -30,6 +30,20 @@ async def get_post_details(
     comments = await comment_manager.get_comments_for_post(id)
     
     return PostGetDetailsSchema(**post, comments=comments)
+
+
+@router.get(
+    '/comment/{id}',
+    response_model=CommentGetSchema
+)
+async def get_comment(
+    id: int,
+    comment_manager: CommentCollectionManager = Depends()
+):
+    comment = await comment_manager.get(id)
+    if not comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nie istnieje komentarz o podanym id.")
+    return comment
     
     
 @router.get(
@@ -48,6 +62,7 @@ async def get_post_list(
     response_model=List[TagGetSchema]
 )
 async def get_tag_list(
+    name_contains: Optional[str] = None,
     manager: TagCollectionManager = Depends()
 ):
-    return await manager.get_tags()
+    return await manager.get_tags(name_contains)

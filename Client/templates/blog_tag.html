@@ -9,8 +9,29 @@
         <h1 class="blog-header1">Tag {{ tag }}</h1>
     </div>
     <div>
-        <h2 class="blog-header3">Najnowsze posty:</h2>
+        {% if posts %}
+            {% if ordering == "-date_created"%}
+                <h2 class="blog-header3">Najnowsze posty:</h2>
+            {% else %}
+                <h2 class="blog-header3">Najpopularniejsze posty:</h2>
+            {% endif %}
+        {% else %}
+            <h2 class="blog-header3">Brak wpisów z tym tagiem.</h2>
+        {% endif %}
         <div class="posts-view">
+            {% if posts %}
+                <div class="header-container">
+                    <div class="filters">
+                        {% if ordering == "-date_created" %}
+                            <a class="filter-selected" href="/tag/{{ tag }}?ordering=-date_created">NAJNOWSZE</a>
+                            <a class="filter" href="/tag/{{ tag }}?ordering=-like_count">NAJPOPULARNIEJSZE</a>
+                        {% else %}
+                            <a class="filter" href="/tag/{{ tag }}?ordering=-date_created">NAJNOWSZE</a>
+                            <a class="filter-selected" href="/tag/{{ tag }}?ordering=-like_count">NAJPOPULARNIEJSZE</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
             {% for post in posts %}
                 <div class="post">
                     <div class="post-data">
@@ -23,7 +44,7 @@
                             </div>
                             <div class="post-likes">
                                 <span class="like-count">+{{ post.like_count }}</span>
-                                {% if user and user.role != "administrator" and user.id != post.creator.id %}
+                                {% if user and user.role != "administrator" and user.id != post.creator.id and user.status == "active" %}
                                     <form class="buttons" action="/post/{{ post.id }}/like">
                                         {% if user.id not in post.like_list %}
                                             <button class="button1 create-post-like">+</button>

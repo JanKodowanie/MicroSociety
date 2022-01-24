@@ -4,7 +4,6 @@ from db import database
 from core.users.managers import BlogUserCollectionManager
 from core.events.received import *
 from typing import List, Optional
-import settings
 
 
 class TagCollectionManager:
@@ -19,8 +18,14 @@ class TagCollectionManager:
         for tag in post.tag_list:
             await self.collection.update_one({"name": tag}, {"$inc": {"popularity": -1}})
             
-    async def get_tags(self) -> List[dict]:
-        cursor = self.collection.find({"popularity": {"$gt": 0}}).sort([("popularity", pymongo.DESCENDING)])
+    async def get_tags(self, name_contains: Optional[str] = None) -> List[dict]:
+        filters = {
+            "popularity": {"$gt": 0}
+        }
+        if name_contains:
+            filters["name"] = {"$regex": name_contains}
+            
+        cursor = self.collection.find(filters).sort([("popularity", pymongo.DESCENDING)])
         return await cursor.to_list(None)
     
         
@@ -69,9 +74,15 @@ class PostCollectionManager:
         await self.collection.update_many({"creator.id": event.id}, {"$set": update_model.dict()})
         
     async def delete(self, event: PostDeleted):
+        post = await self.collection.find_one({"id": event.id})
+        await self.tags.decrease_popularity(PostModel(**post))
         return await self.collection.delete_one({"id": event.id})
     
     async def delete_posts_on_user_delete(self, event: BlogUserDeleted):
+        cursor = self.collection.find({"creator.id": event.id})
+        posts = await cursor.to_list(None)
+        for post in posts:
+            await self.tags.decrease_popularity(PostModel(**post))
         return await self.collection.delete_many({"creator.id": event.id})
 
     async def create_post_like(self, event: LikeCreated):
@@ -85,7 +96,7 @@ class PostCollectionManager:
                                          "$inc": {"like_count": -1}})
         
     async def delete_likes_on_user_delete(self, event: BlogUserDeleted):
-        await self.collection.update_many({"creator.id": event.id}, 
+        await self.collection.update_many({"like_list": event.id}, 
                                         {"$pull": {"like_list": event.id},
                                          "$inc": {"like_count": -1}})
     
@@ -103,6 +114,9 @@ class CommentCollectionManager:
         data['creator'] = creator_data
         model = CommentModel(**data)
         await self.collection.insert_one(model.dict())
+        
+    async def get(self, id: int) -> dict:
+        return await self.collection.find_one({"id": id})
         
     async def get_comments_for_post(self, post_id: int) -> Optional[List[dict]]:
         cursor = self.collection.find({"post_id": post_id}).sort([("date_created", pymongo.DESCENDING)])

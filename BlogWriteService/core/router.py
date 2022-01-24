@@ -99,6 +99,8 @@ async def create_post_like(
     manager: PostManager = Depends(),
     user: AccessTokenSchema = Depends(JWTBearer())
 ):
+    if not IsBlogUser.has_permission(user):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
     try:
         instance = await manager.get(post_id)
     except PostNotFound as e:
@@ -120,6 +122,9 @@ async def delete_post_like(
     manager: PostManager = Depends(),
     user: AccessTokenSchema = Depends(JWTBearer())
 ):
+    if not IsBlogUser.has_permission(user):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail)
+    
     try:
         instance = await manager.get(post_id)
     except PostNotFound as e:

@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}Blog{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/profiles.js"></script>
+{% endblock head %}
+{% block content %}
+    <div>
+        <h1 class="blog-header1">Społeczność:</h1>
+    </div>
+    <div class="list-view">
+        <input type="text" id="username" class="search-input" {% if "username" in params %} value="{{ params.username }}" {% endif %} placeholder="Wyszukaj użytkownika...">
+        <div class="header-container">
+            <div class="filters">
+                {% if "status" not in params %}
+                    <a class="filter-selected" href="/profiles">WSZYSCY</a>
+                    <a class="filter" href="/profiles?status=active">AKTYWNI</a>
+                    <a class="filter" href="/profiles?status=banned">ZBANOWANI</a>
+                {% elif params.status == "active" %}
+                    <a class="filter" href="/profiles">WSZYSCY</a>
+                    <a class="filter-selected" href="/profiles?status=active">AKTYWNI</a>
+                    <a class="filter" href="/profiles?status=banned">ZBANOWANI</a>
+                {% else %}
+                    <a class="filter" href="/profiles">WSZYSCY</a>
+                    <a class="filter" href="/profiles?status=active">AKTYWNI</a>
+                    <a class="filter-selected" href="/profiles?status=banned">ZBANOWANI</a>
+                {% endif %}
+            </div>
+        </div>
+    {% for profile in profiles %}
+        <div class="list-element">
+            <div class="element-data">
+                <div class="element-header">
+                    {% if profile.picture_url %}
+                        <img src={{ profile.picture_url }}>
+                    {% endif %}
+                    <a class="link" href="/profile/{{ profile.id }}">{{ profile.username|e }}</a>
+                </div>
+                <div class="element-attribute"><span>Ranga: </span>
+                    {% if profile.rank == "rank_1" %}
+                        Nieśmiały
+                    {% elif profile.rank == "rank_2" %}
+                        Gawędziarz
+                    {% else %}
+                        Osobowość
+                    {% endif %}
+                </div>
+                <div class="element-attribute"><span>Status: </span>
+                    {% if profile.status == "active" %}
+                        Aktywny
+                    {% elif profile.status == "banned" %}
+                        Zbanowany
+                    {% endif %}    
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock content %}

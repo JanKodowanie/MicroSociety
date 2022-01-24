@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Blog{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/tags.js"></script>
+{% endblock head %}
+{% block content %}
+    <div>
+        <h1 class="blog-header1">Tagi:</h1>
+    </div>
+    <div class="list-view">
+        <input type="text" id="tag-name" class="search-input" {% if name_contains %} value="{{ name_contains }}" {% endif %} placeholder="Wyszukaj użytkownika...">
+    {% for tag in tags %}
+        <div class="list-element">
+            <div class="element-data">
+                <div class="element-header">
+                    <a class="link" href="/tag/{{ tag.name }}">{{ tag.name|e }}</a>
+                </div>
+                <div class="element-attribute"><span>Popularność: </span>{{ tag.popularity|e }}</div>
+            </div>  
+        </div>
+    {% endfor %}
+    </div>
+{% endblock content %}

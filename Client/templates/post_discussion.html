@@ -20,7 +20,7 @@
                     </div>
                     <div class="post-likes">
                         <span class="like-count">+{{ post.like_count }}</span>
-                        {% if user and user.role != "administrator" and user.id != post.creator.id %}
+                        {% if user and user.role != "administrator" and user.id != post.creator.id and user.status == "active" %}
                             <form class="buttons" action="/post/{{ post.id }}/like">
                                 {% if user.id not in post.like_list %}
                                     <button class="button1 create-post-like">+</button>
@@ -54,7 +54,7 @@
         <div class="header-container">
             <h1 class="blog-header2">Komentarze:</h1>
         </div>
-        {% if user and user.role != "administrator" %}
+        {% if user and user.role != "administrator" and user.status == "active" %}
             <div class="new-post">
                 <form class="new-post-form" id="new-comment-form" action="/post/{{ post.id }}/comment">
                     <ul>

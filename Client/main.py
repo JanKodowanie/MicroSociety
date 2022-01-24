@@ -1,15 +1,14 @@
 import uvicorn
 import settings
 import json
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.responses import RedirectResponse
 from core.accounts.schemas import Credentials
 from core.accounts.router import router as accounts_router
 from core.accounts.auth import get_refreshed_credentials, save_data_and_credentials_in_cookies, \
-    remove_user_data_cookies
+    redirect_to_login
 from core.blog.router import router as blog_router
 from datetime import datetime, timedelta, timezone
 
@@ -44,23 +43,13 @@ async def refresh_credentials_if_expired(request: Request, call_next):
     credentials_expired = (credentials.exp - time_now) < timedelta(seconds=60)
     updated_data = None
     if credentials_expired:
-        updated_data = await get_refreshed_credentials(credentials)
-        if not updated_data:
-            response = RedirectResponse('/login')
-            await remove_user_data_cookies(response)
-            return response
+        try:
+            updated_data = await get_refreshed_credentials(credentials)
+        except Exception:
+            await redirect_to_login()
     response = await call_next(request)
     if updated_data:
         await save_data_and_credentials_in_cookies(updated_data, response)
-    return response
-
-
-@app.middleware("http")
-async def redirect_to_login_after_full_logout(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == status.HTTP_401_UNAUTHORIZED:
-        response = RedirectResponse('/login')
-        await remove_user_data_cookies(response)
     return response
 
 

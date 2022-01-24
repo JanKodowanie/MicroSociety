@@ -202,6 +202,62 @@ h1 {
     font-weight: 700;
 }
 
+.list-view {
+    padding-top: calc(25px + 0.2vw);
+    padding-bottom: calc(100px + 0.5vw);
+}
+
+.list-element {
+    display: flex;
+    margin-bottom: calc(5px + 1%);
+    color: rgb(255, 255, 255);
+    min-height: calc(80px + 0.2vh);
+}
+
+.element-header {
+    font-size: calc(20px + 0.4vw);
+    font-weight: 700;
+    display: flex;
+}
+
+.element-header a {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.element-header img {
+    margin-right: calc(10px + 0.4vw);
+    margin-bottom: calc(5px + 0.1vw);
+    width: calc(50px + 1vw);
+    height: calc(50px + 1vw);
+}
+
+.element-data {
+    font-size: calc(8px + 0.5vw);
+    padding: calc(10px + 1%);
+    background-color: rgb(21, 21, 21);
+    border: thin solid;
+    border-color: rgb(127, 127, 127);
+    width: calc(300px + 20%);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.element-attribute {
+    font-size: calc(15px + 0.3vw);
+}
+
+.element-attribute span {
+    color: crimson;
+    font-weight: 700;
+}
+
+.search-input {
+    margin-bottom: calc(30px + 0.15vw);
+    font-size: calc(15px + 0.2vw);
+    width: calc(250px + 14vh);
+}
+
 .header-container {
     display: flex;
 }
@@ -231,6 +287,7 @@ h1 {
 .button1 {
     font-size: calc(10px + 0.5vh);
     margin-right: calc(5px + 0.2vw);
+    margin-bottom: calc(5px + 0.2vw);
     border: none;
     padding: calc(5px + 0.4vh);
     color: white;
@@ -240,6 +297,7 @@ h1 {
 
 .button1:hover {
     background-color: rgb(184, 15, 49);
+    cursor: pointer;
 }
 
 .button2 {
@@ -276,6 +334,7 @@ h1 {
 }
 
 nav {
+    display: flex;
     font-weight: 400;
     font-size: calc(15px + 0.2vw);
     padding: calc(10px + 0.2vw) calc(15px + 0.2vw);
@@ -341,6 +400,7 @@ footer {
 
 .form-with-desc {
     margin: calc(30px + 0.5vw) 0%;
+    padding-bottom: calc(100px + 0.2vw);
     display: flex;
     flex-flow: wrap;
 }
@@ -370,6 +430,12 @@ footer {
     padding: 0;
 }
 
+.form-list img {
+    width: calc(150px + 2vw);
+    height: calc(150px + 2vw);
+    margin-bottom: calc(5px + 0.2vw);
+}
+
 .form-list li {
     margin: calc(10px + 0.15vw) 0;
     font-size: calc(15px + 0.2vw);
@@ -379,12 +445,8 @@ footer {
     font-size: calc(15px + 0.2vw);
 }
 
-.form-list input[type=file] {
-    margin-left: 0.3vw; 
-}
-
-.form-list input[type=radio] {
-    font-size: 0.6vw;
+.form-list input[type="file"] {
+    font-size: calc(12px + 0.3vw);
 }
 
 .form-list select {
@@ -394,6 +456,13 @@ footer {
 .form-list li label {
     font-size: calc(15px + 0.2vw);
     margin-right: 4%;  
+}
+
+.form-list textarea {
+    font-size: calc(15px + 0.2vw);
+    width: calc(250px + 1vw);
+    min-height: calc(200px + 0.4vh);
+    resize: none;
 }
 
 .error-list {
@@ -415,6 +484,7 @@ footer {
 }
 
 .error-mes {
+    color: crimson;
     visibility: visible;
 }
 
@@ -423,6 +493,24 @@ footer {
     margin: calc(20px + 2%) 0;
     color: rgb(255, 255, 255);
     min-height: calc(300px + 0.4vh);
+}
+
+.profile-header {
+    font-size: calc(25px + 1vw);
+    font-weight: 700;
+    display: flex;
+}
+
+.profile-header a {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.profile-header img {
+    margin-right: calc(15px + 0.4vw);
+    margin-bottom: calc(15px + 0.4vw);
+    width: calc(60px + 5vw);
+    height: calc(60px + 5vw);
 }
 
 .profile-data {
@@ -444,15 +532,39 @@ footer {
     white-space: pre-wrap;
 }
 
-.profile-date-created {
+.profile-attribute {
     font-size: calc(15px + 0.2vw);
 }
 
-.profile-gender {
-    font-size: calc(15px + 0.2vw);
-}
-
-.profile-data span {
+.profile-attribute span {
     color: #b5dcff;
     font-weight: 700;
+}
+
+.filters {
+    width: calc(300px + 23%);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: calc(10px + 0.2vw);
+    font-size: calc(15px + 0.3vw);
+}
+
+.filter {
+    color: white;
+    text-decoration: none;
+    margin-right: calc(10px + 0.2vw);
+}
+
+.filter-selected {
+    color: #4d9fe7;
+    text-decoration: none;
+    margin-right: calc(10px + 0.2vw);
+}
+
+a.filter:hover {
+    color: #4d9fe7;
+}
+
+a.filter-selected:hover {
+    cursor: default;
 }

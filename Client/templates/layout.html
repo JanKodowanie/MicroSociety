@@ -7,12 +7,13 @@
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
     <title>{% block title %}{% endblock title %} - Microsociety</title>
-    <script src="/static/logout.js"></script>
     {% endblock head %}
 </head>
     <body>
         <nav>
             <a class="nav-item" href="/">Blog</a>
+            <a class="nav-item" href="/tags">Tagi</a>
+            <a class="nav-item" href="/profiles">Społeczność</a>
             {% if user %}
                 <a class="nav-item" href="/profile/{{ user.id }}" >Mój profil</a>
                 <a id="logout" class="nav-item" href="/logout" >Wyloguj się</a>
