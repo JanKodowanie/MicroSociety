@@ -51,12 +51,13 @@ async def register_employee(
     status_code=status.HTTP_200_OK,
 )
 async def get_employees(
+    params: EmployeeListQueryParams = Depends(),
     manager: EmployeeManager = Depends(),
     account: Account = Depends(AuthHandler.get_user_from_token)
 ):
     if not IsAdministrator.has_permission(account):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=ForbiddenResponse().detail) 
-    return await manager.get_list()
+    return await manager.get_list(params)
 
 
 @router.get(

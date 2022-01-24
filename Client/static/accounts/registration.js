@@ -37,7 +37,7 @@ validateUsername = function () {
         fieldState['username'] = true
                     
     } else {
-        fieldState['login'] = false
+        fieldState['username'] = false
         errorMsg.className = "error-mes"
         errorMsg.innerText = usernameMessage
     }

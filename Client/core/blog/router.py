@@ -39,7 +39,7 @@ async def get_blog_page(
         data = response.json()
         posts = PostListSchema(posts=data)
          
-    return templates.TemplateResponse("blog.html", {"request": request, "user": user, 
+    return templates.TemplateResponse("blog/blog.html", {"request": request, "user": user, 
                                                     "posts": posts.dict(), "ordering": ordering})
 
 
@@ -60,7 +60,7 @@ async def get_tag_view(
         data = response.json()
         posts = PostListSchema(posts=data)
          
-    return templates.TemplateResponse("blog_tag.html", {"request": request, "tag": name, "user": user,
+    return templates.TemplateResponse("blog/blog_tag.html", {"request": request, "tag": name, "user": user,
                                                         "posts": posts.dict(), "ordering": ordering})
 
 
@@ -78,7 +78,7 @@ async def get_tags_list(
         data = response.json()
         tags = TagListSchema(tags=data)
          
-    return templates.TemplateResponse("tags.html", {"request": request, "user": user, 
+    return templates.TemplateResponse("blog/tags.html", {"request": request, "user": user, 
                                                     "tags": tags.dict(), "name_contains": name_contains})
 
 
@@ -92,7 +92,7 @@ async def create_post(
     picture: UploadFile = File(None),
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user: 
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     
     data = {
@@ -129,7 +129,7 @@ async def get_post_discussion(
         data = response.json()
         post = PostGetDetailsSchema(**data)
          
-    return templates.TemplateResponse("post_discussion.html", {"request": request, "user": user, "post": post.dict()})
+    return templates.TemplateResponse("blog/post_discussion.html", {"request": request, "user": user, "post": post.dict()})
 
 
 @router.delete(
@@ -141,7 +141,7 @@ async def delete_post(
     id: int,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user: 
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     
     async with httpx.AsyncClient() as client:
@@ -163,7 +163,7 @@ async def create_post_like(
     id: int,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user: 
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     
     async with httpx.AsyncClient() as client:
@@ -186,7 +186,7 @@ async def delete_post_like(
     id: int,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user: 
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     
     async with httpx.AsyncClient() as client:
@@ -211,7 +211,7 @@ async def create_post_comment(
     content: str = Form(...),
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user: 
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     data = {
         "content": content
@@ -253,7 +253,7 @@ async def delete_post_comment(
     id: int,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user: 
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
 
     async with httpx.AsyncClient() as client:
@@ -285,7 +285,7 @@ async def get_user_profile(
         posts = response.json()
         posts = PostListSchema(posts=posts)
          
-    return templates.TemplateResponse("user_profile.html", {"request": request, "user": user, "posts": posts.dict(), "profile": profile.dict()})
+    return templates.TemplateResponse("blog/user_profile.html", {"request": request, "user": user, "posts": posts.dict(), "profile": profile.dict()})
 
 
 @router.get("/profiles", response_class=HTMLResponse)
@@ -308,4 +308,4 @@ async def get_profiles(
     
     profiles = BlogUserListSchema(users=profiles)
          
-    return templates.TemplateResponse("profiles.html", {"request": request, "user": user, "profiles": profiles.dict(), "params": params})
+    return templates.TemplateResponse("blog/profiles.html", {"request": request, "user": user, "profiles": profiles.dict(), "params": params})

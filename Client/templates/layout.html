@@ -15,7 +15,11 @@
             <a class="nav-item" href="/tags">Tagi</a>
             <a class="nav-item" href="/profiles">Społeczność</a>
             {% if user %}
-                <a class="nav-item" href="/profile/{{ user.id }}" >Mój profil</a>
+                {% if user.role != "administrator" %}
+                    <a class="nav-item" href="/profile/{{ user.id }}" >Mój profil</a>
+                {% else %}
+                    <a class="nav-item" href="/admin/employees" >Pracownicy</a>
+                {% endif %}
                 <a id="logout" class="nav-item" href="/logout" >Wyloguj się</a>
             {% else %}
                 <a class="nav-item" href="/sign-up">Zarejestruj się</a>

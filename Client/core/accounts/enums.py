@@ -19,11 +19,6 @@ class AccountRole(str, Enum):
     ADMINISTRATOR = 'administrator'
     
     
-class EmployeeRole(str, Enum):
-    MODERATOR = 'moderator'
-    ADMINISTRATOR = 'administrator'
-    
-    
 class AccountGender(str, Enum):
     MALE = 'male'
     FEMALE = 'female'

@@ -24,7 +24,7 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/sign-up", response_class=HTMLResponse)
 async def get_registration_page(request: Request):
-    return templates.TemplateResponse("registration.html", {"request": request})
+    return templates.TemplateResponse("accounts/registration.html", {"request": request})
 
 
 @router.post(
@@ -50,7 +50,7 @@ async def register_user(
 
 @router.get("/login", response_class=HTMLResponse)
 async def get_login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse("accounts/login.html", {"request": request})
 
 
 @router.post(
@@ -103,7 +103,7 @@ async def logout_user_on_all_devices(
 
 @router.get("/password-reset-code", response_class=HTMLResponse)
 async def get_password_reset_code_form(request: Request):
-    return templates.TemplateResponse("pass_reset_code.html", {"request": request})
+    return templates.TemplateResponse("accounts/pass_reset_code.html", {"request": request})
 
 
 @router.post(
@@ -218,7 +218,7 @@ async def get_account_edit_form(
     response: Response,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if not user:
+    if not user or user.role == AccountRole.ADMINISTRATOR: 
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
     
     async with httpx.AsyncClient() as client:
@@ -228,7 +228,7 @@ async def get_account_edit_form(
             return await redirect_to_login()
         account_data = BlogUserGetDetailsSchema(**data_response.json())
     
-    return templates.TemplateResponse("blog_user_edit.html", {"request": request, 
+    return templates.TemplateResponse("accounts/blog_user_edit.html", {"request": request, 
                                             "user": user, "data": account_data.dict()})
 
 
@@ -237,7 +237,7 @@ async def get_password_reset_form(
     request: Request,
     code: UUID
 ):
-    return templates.TemplateResponse("pass_reset_form.html", {"request": request})
+    return templates.TemplateResponse("accounts/pass_reset_form.html", {"request": request})
 
 
 @router.patch(
@@ -270,18 +270,22 @@ async def delete_account(
     response: Response,
     user: Optional[UserSession] = Depends(get_user_session)
 ):
-    if user and user.id == id:
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+    
+    if user.id == id:
         request_url = "/user-management/delete"
-    elif user and user.role == AccountRole.MODERATOR:
+    elif user.role == AccountRole.MODERATOR:
         request_url = f"/user-management/blog-user/{id}"
     else:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Nie możesz wykonać tej operacji.")
+        request_url = f"/user-management/employee/{id}"
     
     async with httpx.AsyncClient() as client:
         headers = {'authorization': user.access_token}
         await client.delete(f'{settings.BACKEND_URL}{request_url}', headers=headers)
     
-    await remove_user_data_cookies(response)
+    if user.id == id:
+        await remove_user_data_cookies(response)
     return OkResponse(detail="Konto zostało usunięte.")
 
 

@@ -88,10 +88,7 @@ onSubmitPicture = async function (e) {
             pictureErrorMsg.innerText = response_data.detail
         }
     } else {
-        var msg = document.getElementById("success-mes")
-        msg.className = "error-mes"
-        msg.innerText = response_data.detail
-        msg.style.color = "#008000"
+        window.location.reload()
     }
 }    
 
@@ -107,9 +104,6 @@ onDeletePicture = async function (e) {
             pictureErrorMsg.innerText = response_data.detail
         }
     } else {
-        var msg = document.getElementById("success-mes")
-        msg.className = "error-mes"
-        msg.innerText = response_data.detail
-        msg.style.color = "#008000"
+        window.location.reload()
     }
 }    

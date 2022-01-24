@@ -7,9 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from core.accounts.schemas import Credentials
 from core.accounts.router import router as accounts_router
+from core.blog.router import router as blog_router
+from core.admin.router import router as admin_router
 from core.accounts.auth import get_refreshed_credentials, save_data_and_credentials_in_cookies, \
     redirect_to_login
-from core.blog.router import router as blog_router
 from datetime import datetime, timedelta, timezone
 
 
@@ -27,6 +28,7 @@ app.add_middleware(
 
 app.include_router(accounts_router)
 app.include_router(blog_router)
+app.include_router(admin_router)
 
 
 app.mount('/static', StaticFiles(directory='static'), name="static")

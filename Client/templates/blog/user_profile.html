@@ -2,8 +2,8 @@
 {% block title %}{{ profile.username }}{% endblock title %}
 {% block head %}
     {{ super() }}
-    <script src="/static/blog.js"></script>
-    <script src="/static/userProfile.js"></script>
+    <script src="/static/blog/blog.js"></script>
+    <script src="/static/blog/userProfile.js"></script>
 {% endblock head %}
 {% block content %}
     <div class="profile">
@@ -40,8 +40,11 @@
                     {% if profile.id == user.id %}
                         <button class="button1" id="logout-all">Wyloguj na wszystkich urządzeniach</button>
                         <button class="button1" id="edit-account">Edytuj konto</button>
+                        <button class="button1" id="delete-own-account">Usuń konto</button>
                     {% endif %}
-                    <button class="button1" id="delete-account">Usuń konto</button>
+                    {% if profile.id != user.id %}
+                        <button class="button1" id="delete-account">Usuń konto</button>
+                    {% endif %}
                     {% if profile.status == "active" and profile.id != user.id and user.role == "moderator" %}
                         <button class="button1 ban-account-button" id="ban-account">Zbanuj użytkownika</button>
                     {% endif %}

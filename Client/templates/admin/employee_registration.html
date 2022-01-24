@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block title %}Rejestracja pracownika{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/admin/employeeRegistration.js"></script>
+{% endblock head %}
+{% block content %}
+    <section class="form-with-desc">
+        <div class="greetings">
+            <h1>Rejestracja pracownika:</h1>
+        </div>
+        <form class="auth-form" id="regform">
+            <ul class="form-list">
+                <li>
+                    <input type="text" id="username" name="username" placeholder="Nazwa użytkownika">
+                </li>
+                <li>
+                    <input type="email" id="email" name="email" placeholder="Email">
+                </li>
+                <li>
+                    <input type="password" id="password" name="password" placeholder="Hasło">
+                </li>
+                <li>
+                    <input type="password" id="password2" name="password2" placeholder="Powtórz hasło">
+                </li>
+                <li>
+                    <label for="gender">Płeć:</label>
+                    <select id="gender" name="gender">
+                        <option value="none" selected>Wybierz płeć...</option>
+                        <option value="male">Mężczyzna</option>
+                        <option value="female">Kobieta</option>
+                    </select>
+                </li>
+                <li>
+                    <label for="role">Rola:</label>
+                    <select id="role" name="role">
+                        <option value="none" selected>Wybierz rolę...</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="administrator">Administrator</option>
+                    </select>
+                </li>
+                <li>
+                    <input type="text" id="firstname" name="firstname" placeholder="Imię">
+                </li>
+                <li>
+                    <input type="text" id="lastname" name="lastname" placeholder="Nazwisko">
+                </li>
+                <li>
+                    <input type="text" id="phonenumber" name="phone_number" placeholder="Telefon">
+                </li> 
+                <li>
+                    <button class="button1" type="submit">Prześlij</button>
+                </li>
+            </ul>
+        </form>
+        <ul class="error-list">
+            <li class="error-mes-hidden" id="username-error"></li>
+            <li class="error-mes-hidden" id="email-error"></li>
+            <li class="error-mes-hidden" id="password-error"></li>
+            <li class="error-mes-hidden" id="password2-error"></li>
+            <li class="error-mes-hidden" id="gender-error"></li>
+            <li class="error-mes-hidden" id="role-error"></li>
+            <li class="error-mes-hidden" id="firstname-error"></li>
+            <li class="error-mes-hidden" id="lastname-error"></li>
+            <li class="error-mes-hidden" id="phonenumber-error"></li>
+        </ul>
+    </section>
+{% endblock content %}

@@ -55,5 +55,6 @@ class EmployeeManager:
         await instance.save()
         return instance
     
-    async def get_list(self, filters: dict = dict()) -> List[Employee]:
+    async def get_list(self, params: EmployeeListQueryParams) -> List[Employee]:
+        filters = params.dict()
         return await Employee.filter(**filters).prefetch_related('account')

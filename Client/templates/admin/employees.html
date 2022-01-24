@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block title %}Pracownicy{% endblock title %}
+{% block head %}
+    {{ super() }}
+    <script src="/static/admin/employees.js"></script>
+{% endblock head %}
+{% block content %}
+    <div>
+        <h1 class="blog-header1">Pracownicy:</h1>
+    </div>
+    <div class="list-view">
+        <input type="text" id="fullname" class="search-input" {% if "fullname" in params %} value="{{ params.fullname }}" {% endif %} placeholder="Wyszukaj pracownika...">
+        <form class="buttons" action="/admin/employee/{{user.id}}">
+            <button class="button1" id="your-data">Twoje dane</button>
+            <h1 class="blog-header3"></h1>
+        </form>
+        <form class="buttons" action="/admin/register-employee">
+            <button class="button1" id="register-employee">Zarejestruj pracownika</button>
+            <h1 class="blog-header3"></h1>
+        </form>
+        <div class="header-container">
+            <div class="filters">
+                {% if "role" not in params %}
+                    <a class="filter-selected" href="/admin/employees">WSZYSCY</a>
+                    <a class="filter" href="/admin/employees?role=moderator">MODERATORZY</a>
+                    <a class="filter" href="/admin/employees?role=administrator">ADMINISTRATORZY</a>
+                {% elif params.role == "moderator" %}
+                    <a class="filter" href="/admin/employees">WSZYSCY</a>
+                    <a class="filter-selected" href="/admin/employees?role=moderator">MODERATORZY</a>
+                    <a class="filter" href="/admin/employees?role=administrator">ADMINISTRATORZY</a>
+                {% else %}
+                    <a class="filter" href="/admin/employees">WSZYSCY</a>
+                    <a class="filter" href="/admin/employees?role=moderator">MODERATORZY</a>
+                    <a class="filter-selected" href="/admin/employees?role=administrator">ADMINISTRATORZY</a>
+                {% endif %}
+            </div>
+        </div>
+    {% for employee in employees %}
+        <div class="list-element">
+            <div class="element-data">
+                <div class="element-header">
+                    <a class="link" href="/admin/employee/{{ employee.id }}">{{ employee.fullname|e }}</a>
+                </div>
+                <div class="element-attribute"><span>Rola: </span>
+                    {% if employee.role == "moderator" %}
+                        Moderator
+                    {% else %}
+                        Administrator
+                    {% endif %}
+                </div>
+                <div class="element-attribute"><span>Telefon: </span>{{ employee.phone_number|e }}</div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock content %}

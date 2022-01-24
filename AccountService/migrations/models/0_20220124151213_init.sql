@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS "account" (
 );
 CREATE TABLE IF NOT EXISTS "passwordresetcode" (
     "code" CHAR(36) NOT NULL  PRIMARY KEY,
-    "exp" TIMESTAMP NOT NULL  DEFAULT '2022-01-18T19:32:44.570422+00:00',
+    "exp" TIMESTAMP NOT NULL  DEFAULT '2022-01-25T14:12:12.947179+00:00',
     "user_id" CHAR(36) NOT NULL UNIQUE REFERENCES "account" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "refreshtoken" (
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS "employee" (
     "firstname" VARCHAR(30) NOT NULL,
     "lastname" VARCHAR(30) NOT NULL,
     "phone_number" VARCHAR(9) NOT NULL,
+    "fullname" VARCHAR(60),
     "account_id" CHAR(36) NOT NULL UNIQUE REFERENCES "account" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "publishedevent" (

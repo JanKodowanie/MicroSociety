@@ -23,8 +23,8 @@ class EmployeeCreateSchema(BlogUserCreateSchema, EmployeeEditSchema):
 class EmployeeGetListSchema(pydantic.BaseModel):
     id: UUID
     role: AccountRole
-    firstname: str
-    lastname: str
+    fullname: str
+    phone_number: str
     
     class Config:
         orm_mode = True
@@ -40,7 +40,6 @@ class EmployeeGetListSchema(pydantic.BaseModel):
     
 class EmployeeGetDetailsSchema(EmployeeGetListSchema):
     username: str
-    phone_number: str
     date_joined: datetime
     email: str
     gender: AccountGender
@@ -59,3 +58,17 @@ class EmployeeGetDetailsSchema(EmployeeGetListSchema):
             obj.role = obj.account.role
             
         return super().from_orm(obj)
+    
+    
+class EmployeeListQueryParams(pydantic.BaseModel):
+    fullname: Optional[str]
+    role: Optional[EmployeeRole]
+    
+    def dict(self):
+        filters_dict = {}
+        if self.fullname:
+            filters_dict['fullname__icontains'] = self.fullname
+        if self.role:
+            filters_dict['account__role'] = self.role
+            
+        return filters_dict

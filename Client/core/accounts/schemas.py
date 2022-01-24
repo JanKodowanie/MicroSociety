@@ -6,7 +6,7 @@ from common.validators import *
 from datetime import datetime
 
 
-class BlogUserCreateSchema(pydantic.BaseModel):
+class AccountCreateSchema(pydantic.BaseModel):
     username: pydantic.constr(strip_whitespace=True, min_length=6, max_length=20)
     email: pydantic.EmailStr
     password: pydantic.constr(strip_whitespace=True, min_length=6, max_length=30)
@@ -14,6 +14,9 @@ class BlogUserCreateSchema(pydantic.BaseModel):
     
     _username_is_alphanumeric: classmethod = alphanumeric_validator("username")
 
+
+class BlogUserCreateSchema(AccountCreateSchema):
+    pass
 
 
 class BlogUserEditSchema(pydantic.BaseModel):

@@ -4,6 +4,7 @@ window.addEventListener("load", initialize, true);
 function initialize() {
     let edit_button = document.getElementById("edit-account")
     let delete_button = document.getElementById("delete-account")
+    let delete_own_button = document.getElementById("delete-own-account")
     let logout_all_button = document.getElementById("logout-all")
     let ban_button = document.getElementById("ban-account")
     let unban_button = document.getElementById("unban-account")
@@ -13,6 +14,9 @@ function initialize() {
     }
     if (delete_button != null) {
         delete_button.addEventListener('click', onDeleteAccountButtonClicked)
+    }
+    if (delete_own_button != null) {
+        delete_own_button.addEventListener('click', onDeleteOwnAccountButtonClicked)
     }
     if (logout_all_button != null) {
         logout_all_button.addEventListener('click', onLogoutAllButtonClicked)
@@ -37,6 +41,22 @@ onLogoutAllButtonClicked = async function (e) {
 }
 
 onDeleteAccountButtonClicked = async function (e) {
+    e.preventDefault()
+    let form = e.target.parentNode
+    let url = form.action
+    let response = await fetch(url, {method: 'DELETE'})
+
+    if (response.status !== 200) {
+        response_data = await response.json()
+        if (response_data.detail) {
+            alert(response_data.detail)
+        }
+    } else {
+        window.location.href = "/profiles"
+    }
+}
+
+onDeleteOwnAccountButtonClicked = async function (e) {
     e.preventDefault()
     let form = e.target.parentNode
     let url = form.action
