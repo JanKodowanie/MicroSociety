@@ -1,7 +1,7 @@
 import json
 import httpx
 import settings
-from fastapi import Cookie, Response
+from fastapi import Cookie, Response, status
 from starlette.responses import RedirectResponse
 from .schemas import UserSession, Credentials, LoginResponse, AccountGetBasicSchema
 from typing import Optional
@@ -49,6 +49,6 @@ async def get_refreshed_credentials(credentials: Credentials):
 
 
 async def redirect_to_login():
-    response = RedirectResponse('/login')
+    response = RedirectResponse(url='/login', status_code=status.HTTP_303_SEE_OTHER)
     await remove_user_data_cookies(response)
     return response
